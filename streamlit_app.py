@@ -71,8 +71,8 @@ lob = st.text_input(
     placeholder="Enter LoB (e.g., Chiller)",
 ).strip().lower()
 owner = st.text_input(
-    "Enter a 4-character abbreviation of the building owner (e.g., PTBA, BBRI):",
-    placeholder="Enter owner abbreviation (e.g., PTBA)",
+    "Enter 4 abbreviation letter of the building owner name (e.g., CPTR, SMRC, PTBA, BBRI):",
+    placeholder="Enter owner abbreviation (e.g., CPTR)",
 ).strip()
 building = st.text_input(
     "Enter Building Type (e.g., Office, Mall, Data Center):",
