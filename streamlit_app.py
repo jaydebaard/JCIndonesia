@@ -76,26 +76,13 @@ area = st.text_input(
     placeholder="Enter project area (e.g., Cimanggis)",
 ).strip()
 
-# Button to generate opportunity name
-if st.button("Generate Opportunity Name"):
-    error = False
-
-    # Validate inputs
+# Dynamically generate opportunity name when all inputs are valid
+if lob and owner and len(owner) == 4 and building and area:
     if lob not in LOB_CODES:
         st.error("Invalid LoB. Please try again with a correct option.")
-        error = True
-    if not owner or len(owner) != 4:
-        st.error("Invalid owner abbreviation. It must be 4 characters.")
-        error = True
-    if building not in FACILITY_CODES:
+    elif building not in FACILITY_CODES:
         st.error("Invalid Building Type. Please try again with a correct option.")
-        error = True
-    if not area:
-        st.error("Invalid Project Area. Please provide a valid area.")
-        error = True
-
-    # Generate opportunity name if no errors
-    if not error:
+    else:
         lob_code = LOB_CODES[lob]
         facility_code = FACILITY_CODES[building]
         reversed_owner = reverse_string(owner).title()
@@ -106,6 +93,8 @@ if st.button("Generate Opportunity Name"):
         st.success("Generated Opportunity Name:")
         st.code(opportunity_name)
         st.session_state["last_generated_code"] = opportunity_name
+else:
+    st.warning("Please fill in all fields with valid inputs.")
 
 # Button to copy the last generated code
 if "last_generated_code" in st.session_state and st.button("Copy to Clipboard"):
