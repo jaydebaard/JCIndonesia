@@ -56,13 +56,13 @@ def decipher_location(location):
 
 
 # Streamlit app title
-st.title("SFDC Opportunity Name Generator")
+st.title("SFDC Opportunity Secret Name Generator")
 
 # Input fields
-lob = st.text_input("Enter LoB (Airside/Chiller/Control/Fire/Security/Digital Solution):").strip().lower()
-owner = st.text_input("Enter End Customer Name Abbreviation (e.g., PTBA, BBRI, UNVR, TLKM, etc.):").strip()
-building = st.text_input("Enter Building Type (e.g., Office, Mall, Data Center, etc.):").strip().lower()
-area = st.text_input("Enter Project Area (e.g., Cimanggis):").strip()
+lob = st.text_input("Enter LoB (i.e. Airside/Chiller/Control/Fire/Security/Digital Solution):").strip().lower()
+owner = st.text_input("Enter 4 digits abbreviation of building owner (i.e., PTBA, BBRI, UNVR, TLKM, etc.):").strip()
+building = st.text_input("Enter Building Type (i.e., Office, Mall, Data Center, etc.):").strip().lower()
+area = st.text_input("Enter Project Area (i.e., Cimanggis):").strip()
 
 # Button to generate opportunity name
 if st.button("Generate Opportunity Name"):
