@@ -82,8 +82,8 @@ building = st.text_input(
     placeholder="Enter building type (e.g., Office)",
 ).strip().lower()
 area = st.text_input(
-    "Enter Project Area (e.g., Cimanggis):",
-    placeholder="Enter project area (e.g., Cimanggis)",
+    "Enter Project Area (e.g., Slipi, Cimanggis):",
+    placeholder="Enter project area (e.g., Slipi)",
 ).strip()
 
 # Real-time validation for owner field
