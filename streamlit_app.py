@@ -1,12 +1,66 @@
 import difflib  # For fuzzy matching
 import streamlit as st
 
-# ... (existing LOB_CODES and FACILITY_CODES dictionaries)
+# Data mappings based on the provided rules
+LOB_CODES = {
+    "chiller": "Alpha",
+    "airside": "Beta",
+    "control (bms)": "Gamma",
+    "fire": "Delta",
+    "security": "Epsilon",
+    "digital solution": "Zeta",
+}
 
-def get_closest_match(input_str, options):
-    """Find the closest match for a string in a list of options."""
-    matches = difflib.get_close_matches(input_str, options, n=1, cutoff=0.6)
+FACILITY_CODES = {
+    "public facilities": "PUB",
+    "university": "UNI",
+    "transport": "TRP",
+    "hotel": "HOT",
+    "commercial": "COM",
+    "mall": "MAL",
+    "office": "OFC",
+    "industrial": "IND",
+    "data center": "DCT",
+    "residential": "RES",
+    "house": "HOU",
+    "housing": "HOU",
+    "hospital": "HOS",
+    "warehouse": "WRH",
+    "retail": "RTL",
+    "plant": "EPL",
+    "government office": "GOV",
+    "government": "GOV",
+    "sports": "SPT",
+    "sport": "SPT",
+    "stadium": "STA",
+    "education center": "EDU",
+    "entertainment center": "ENT",
+    "factory": "FCT",
+    "airport": "APT",
+    "train station": "STN",
+    "train": "STN",
+    "logistics hub": "LGH",
+}
+
+LOB_CODES_REVERSE = {v: k.capitalize() for k, v in LOB_CODES.items()}
+FACILITY_CODES_REVERSE = {v: k.capitalize() for k, v in FACILITY_CODES.items()}
+
+
+# Function to reverse a string
+def reverse_string(s):
+    return s[::-1]
+
+
+# Function to decipher the location
+def decipher_location(location):
+    return reverse_string(location).capitalize()
+
+
+# Function to find the closest match for a string
+def get_closest_match(input_str, valid_options):
+    matches = difflib.get_close_matches(input_str, valid_options, n=1, cutoff=0.6)
     return matches[0] if matches else None
+
 
 # Streamlit app title
 st.title("SFDC Opportunity Secret Name Generator")
@@ -29,18 +83,19 @@ area = st.text_input(
     placeholder="Enter project area (e.g., Cimanggis)",
 ).strip()
 
-# Dynamically generate opportunity name when all inputs are valid
+# Validate inputs and dynamically generate opportunity name
 if lob and owner and len(owner) == 4 and building and area:
     if lob not in LOB_CODES:
-        st.error("Invalid LoB. Please try again with a correct option.")
+        st.error("Invalid LoB. Valid options are:")
+        st.write(", ".join(LOB_CODES.keys()))
     else:
-        closest_facility = get_closest_match(building, FACILITY_CODES.keys())
-        if not closest_facility:
+        closest_building = get_closest_match(building, FACILITY_CODES.keys())
+        if not closest_building:
             st.error("Invalid Building Type. Valid options are:")
             st.write(", ".join(FACILITY_CODES.keys()))
         else:
             lob_code = LOB_CODES[lob]
-            facility_code = FACILITY_CODES[closest_facility]
+            facility_code = FACILITY_CODES[closest_building]
             reversed_owner = reverse_string(owner).title()
             reversed_facility = reverse_string(facility_code).title()
             reversed_area = reverse_string(area[:4].upper()).title()
@@ -51,3 +106,35 @@ if lob and owner and len(owner) == 4 and building and area:
             st.session_state["last_generated_code"] = opportunity_name
 else:
     st.warning("Please fill in all fields with valid inputs.")
+
+# Button to copy the last generated code
+if "last_generated_code" in st.session_state and st.button("Copy to Clipboard"):
+    st.experimental_set_query_params(opportunity_name=st.session_state["last_generated_code"])
+    st.success("Generated code copied to clipboard!")
+
+# Input to decipher code
+cipher = st.text_input(
+    "Enter Cipher Code to Decipher:",
+    placeholder="Enter cipher code (e.g., #Alpha#Sbtp-Efo#{Sigm})",
+)
+
+if st.button("Decipher Code"):
+    try:
+        lob_code, owner_facility, area = cipher.strip("#").split("#")
+        owner, facility = owner_facility.split("-")
+
+        original_lob = LOB_CODES_REVERSE.get(lob_code, "Unknown LoB").title()
+        original_facility = FACILITY_CODES_REVERSE.get(reverse_string(facility), "Unknown Facility").title()
+        original_owner = reverse_string(owner).title()
+        original_area = decipher_location(area).title()
+
+        if "Unknown" in (original_lob, original_facility):
+            st.error("Invalid Cipher Code. Please check your entry.")
+        else:
+            st.success("Deciphered Details:")
+            st.write(f"LoB: {original_lob}")
+            st.write(f"Owner: {original_owner}")
+            st.write(f"Facility: {original_facility}")
+            st.write(f"Area: {original_area}")
+    except Exception as e:
+        st.error("Invalid Cipher Code. Please check your entry.")
