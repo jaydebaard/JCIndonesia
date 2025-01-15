@@ -43,7 +43,7 @@ FACILITY_CODES = {
 }
 
 LOB_CODES_REVERSE = {v: k.capitalize() for k, v in LOB_CODES.items()}
-FACILITY_CODES_REVERSE = {v: k.capitalize() for k, v in FACILITY_CODES.items()}
+FACILITY_CODES_REVERSE = {v: k.lower() for k, v in FACILITY_CODES.items()}
 
 
 # Function to reverse a string
@@ -120,7 +120,11 @@ if st.button("Decipher Code"):
         owner, facility = owner_facility.split("-")
 
         original_lob = LOB_CODES_REVERSE.get(lob_code, "Unknown LoB").title()
-        original_facility = FACILITY_CODES_REVERSE.get(reverse_string(facility), "Unknown Facility").title()
+        original_facility_key = reverse_string(facility).lower()
+        original_facility = next(
+            (k.capitalize() for k, v in FACILITY_CODES.items() if v.lower() == original_facility_key),
+            "Unknown Facility",
+        )
         original_owner = reverse_string(owner).title()
         original_area = decipher_location(area).title()
 
