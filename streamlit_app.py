@@ -1,4 +1,4 @@
-import difflib  # For fuzzy matching
+import difflib
 import streamlit as st
 
 # Data mappings based on the provided rules
@@ -83,9 +83,13 @@ area = st.text_input(
     placeholder="Enter project area (e.g., Cimanggis)",
 ).strip()
 
-# Validate inputs and dynamically generate opportunity name
-if lob and owner and len(owner) == 4 and building and area:
-    if lob not in LOB_CODES:
+# Button to generate opportunity name
+if st.button("Generate Code"):
+    if not lob or not owner or not building or not area:
+        st.error("All fields are required. Please fill in all fields.")
+    elif len(owner) != 4:
+        st.error("Owner abbreviation must be exactly 4 characters.")
+    elif lob not in LOB_CODES:
         st.error("Invalid LoB. Valid options are:")
         st.write(", ".join(LOB_CODES.keys()))
     else:
@@ -103,14 +107,6 @@ if lob and owner and len(owner) == 4 and building and area:
             opportunity_name = f"#{lob_code}#{reversed_owner}-{reversed_facility}#{reversed_area}"
             st.success("Generated Opportunity Name:")
             st.code(opportunity_name)
-            st.session_state["last_generated_code"] = opportunity_name
-else:
-    st.warning("Please fill in all fields with valid inputs.")
-
-# Button to copy the last generated code
-if "last_generated_code" in st.session_state and st.button("Copy to Clipboard"):
-    st.experimental_set_query_params(opportunity_name=st.session_state["last_generated_code"])
-    st.success("Generated code copied to clipboard!")
 
 # Input to decipher code
 cipher = st.text_input(
