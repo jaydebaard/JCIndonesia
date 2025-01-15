@@ -70,10 +70,13 @@ lob = st.text_input(
     "Enter LoB (e.g., Airside, Chiller, Control, Fire, Security, Digital Solution):",
     placeholder="Enter LoB (e.g., Chiller)",
 ).strip().lower()
+
 owner = st.text_input(
-    "Enter 4 abbreviation letter of the building owner name (e.g., CPTR, SMRC, PTBA, BBRI):",
-    placeholder="Enter owner abbreviation (e.g., CPTR)",
+    "Enter 4 abbreviation letters of the building owner name (e.g., CPTR, SMRC, PTBA, BBRI):",
+    placeholder="Must be exactly 4 letters",
+    max_chars=4,  # Limit input to 4 characters
 ).strip()
+
 building = st.text_input(
     "Enter Building Type (e.g., Office, Mall, Data Center):",
     placeholder="Enter building type (e.g., Office)",
@@ -83,14 +86,14 @@ area = st.text_input(
     placeholder="Enter project area (e.g., Cimanggis)",
 ).strip()
 
-# Validate the owner field length
+# Real-time validation for owner field
 if owner and len(owner) != 4:
     st.error("Owner abbreviation must be exactly 4 characters.")
 
 # Button to generate opportunity name
 if st.button("Generate Code"):
     if not lob or not owner or len(owner) != 4 or not building or not area:
-        st.error("All fields are required and the owner abbreviation must be exactly 4 characters.")
+        st.error("All fields are required, and the owner abbreviation must be exactly 4 characters.")
     elif lob not in LOB_CODES:
         st.error("Invalid LoB. Valid options are:")
         st.write(", ".join(LOB_CODES.keys()))
@@ -113,7 +116,7 @@ if st.button("Generate Code"):
 # Input to decipher code
 cipher = st.text_input(
     "Enter Cipher Code to Decipher:",
-    placeholder="Enter generated code (e.g., #Alpha#Sbtp-Efo#cima)",
+    placeholder="Enter generated code (e.g., #Alpha#Sbtp-Efo#Cima)",
 )
 
 if st.button("Decipher Code"):
