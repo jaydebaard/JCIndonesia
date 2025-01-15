@@ -5,7 +5,7 @@ import streamlit as st
 LOB_CODES = {
     "chiller": "Alpha",
     "airside": "Beta",
-    "control (bms)": "Gamma",
+    "control": "Gamma",
     "fire": "Delta",
     "security": "Epsilon",
     "digital solution": "Zeta",
