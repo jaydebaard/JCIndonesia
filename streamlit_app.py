@@ -116,7 +116,7 @@ if st.button("Generate Code"):
 
 # Input to decipher code
 cipher = st.text_input(
-    "Enter Cipher Code to Decipher:",
+    "Enter generated Code to Decipher:",
     placeholder="Enter generated code (e.g., #Alpha#Sbtp-Efo#Cima)",
 )
 
