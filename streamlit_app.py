@@ -60,7 +60,7 @@ st.title("SFDC Opportunity Name Generator")
 
 # Input fields
 lob = st.text_input("Enter LoB (Airside/Chiller/Control/Fire/Security/Digital Solution):").strip().lower()
-owner = st.text_input("Enter End Customer Name Abbreviation (e.g., PTBS, BBRI, etc.):").strip()
+owner = st.text_input("Enter End Customer Name Abbreviation (e.g., PTBA, BBRI, UNVR, TLKM, etc.):").strip()
 building = st.text_input("Enter Building Type (e.g., Office, Mall, Data Center, etc.):").strip().lower()
 area = st.text_input("Enter Project Area (e.g., Cimanggis):").strip()
 
