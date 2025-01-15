@@ -109,7 +109,7 @@ if st.button("Generate Opportunity Name"):
 
 # Button to copy the last generated code
 if "last_generated_code" in st.session_state and st.button("Copy to Clipboard"):
-    st.query_params(opportunity_name=st.session_state["last_generated_code"])
+    st.experimental_set_query_params(opportunity_name=st.session_state["last_generated_code"])
     st.success("Generated code copied to clipboard!")
 
 # Input to decipher code
@@ -138,4 +138,3 @@ if st.button("Decipher Code"):
             st.write(f"Area: {original_area}")
     except Exception as e:
         st.error("Invalid Cipher Code. Please check your entry.")
-
