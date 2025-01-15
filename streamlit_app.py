@@ -60,16 +60,29 @@ area = st.text_input("Enter Project Area (e.g., Cimanggis):").strip()
 
 # Button to generate opportunity name
 if st.button("Generate Opportunity Name"):
-    lob_code = LOB_CODES.get(lob, "Unknown LoB")
-    facility_code = FACILITY_CODES.get(building, "Unknown Facility")
+    error = False
 
-    reversed_owner = reverse_string(owner)
-    reversed_facility = reverse_string(facility_code)
-    reversed_area = reverse_string(area[:4].upper())
+    # Validate inputs
+    if lob not in LOB_CODES:
+        st.error("Invalid LoB. Try with the correct word.")
+        error = True
+    if not owner:
+        st.error("Invalid End Customer Name. Please provide a valid abbreviation.")
+        error = True
+    if building not in FACILITY_CODES:
+        st.error("Invalid Building Type. Try with the correct word.")
+        error = True
+    if not area:
+        st.error("Invalid Project Area. Please provide a valid area.")
+        error = True
 
-    if "Unknown" in (lob_code, facility_code):
-        st.error("Invalid input. Please check your entries.")
-    else:
+    if not error:
+        lob_code = LOB_CODES[lob]
+        facility_code = FACILITY_CODES[building]
+        reversed_owner = reverse_string(owner)
+        reversed_facility = reverse_string(facility_code)
+        reversed_area = reverse_string(area[:4].upper())
+
         opportunity_name = f"#{lob_code}#{reversed_owner}-{reversed_facility}#{reversed_area}"
         st.success("Generated Opportunity Name:")
         st.code(opportunity_name)
@@ -93,10 +106,13 @@ if st.button("Decipher Code"):
         original_owner = reverse_string(owner)
         original_area = decipher_location(area)
 
-        st.success("Deciphered Details:")
-        st.write(f"LoB: {original_lob}")
-        st.write(f"Owner: {original_owner}")
-        st.write(f"Facility: {original_facility}")
-        st.write(f"Area: {original_area}")
+        if "Unknown" in (original_lob, original_facility):
+            st.error("Invalid Cipher Code. Please check your entry.")
+        else:
+            st.success("Deciphered Details:")
+            st.write(f"LoB: {original_lob}")
+            st.write(f"Owner: {original_owner}")
+            st.write(f"Facility: {original_facility}")
+            st.write(f"Area: {original_area}")
     except Exception as e:
         st.error("Invalid Cipher Code. Please check your entry.")
