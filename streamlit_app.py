@@ -16,7 +16,7 @@ FACILITY_CODES = {
     "transport": "TRP",
     "hotel": "HOT",
     "commercial": "COM",
-    "shopping mall": "MAL",
+    "mall": "MAL",
     "office": "OFC",
     "industrial": "IND",
     "data center": "DCT",
