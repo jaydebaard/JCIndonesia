@@ -83,12 +83,14 @@ area = st.text_input(
     placeholder="Enter project area (e.g., Cimanggis)",
 ).strip()
 
+# Validate the owner field length
+if owner and len(owner) != 4:
+    st.error("Owner abbreviation must be exactly 4 characters.")
+
 # Button to generate opportunity name
 if st.button("Generate Code"):
-    if not lob or not owner or not building or not area:
-        st.error("All fields are required. Please fill in all fields.")
-    elif len(owner) != 4:
-        st.error("Owner abbreviation must be exactly 4 characters.")
+    if not lob or not owner or len(owner) != 4 or not building or not area:
+        st.error("All fields are required and the owner abbreviation must be exactly 4 characters.")
     elif lob not in LOB_CODES:
         st.error("Invalid LoB. Valid options are:")
         st.write(", ".join(LOB_CODES.keys()))
