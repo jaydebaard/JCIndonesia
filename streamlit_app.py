@@ -112,7 +112,13 @@ if st.button("Generate Code"):
             opportunity_name = f"#{lob_code}#{reversed_owner}-{reversed_facility}#{reversed_area}"
             st.success("Generated Opportunity Name:")
             st.code(opportunity_name)
-            st.info("Copy this code to your SFDC Opportunity Name field.")  # Notification added here
+            st.info("Copy this code to your SFDC Opportunity Name field.")
+
+            # Display account name
+            account_name = "PT Johnson Controls Indonesia"
+            st.success("Account Name:")
+            st.code(account_name)
+            st.info("Copy this to the account name in SFDC.")  # Additional notification
 
 # Input to decipher code
 cipher = st.text_input(
@@ -121,26 +127,31 @@ cipher = st.text_input(
 )
 
 if st.button("Decipher Code"):
-    try:
-        lob_code, owner_facility, area = cipher.strip("#").split("#")
-        owner, facility = owner_facility.split("-")
+    if not cipher:
+        st.error("Please enter a cipher code to decipher.")
+    else:
+        try:
+            lob_code, owner_facility, area = cipher.strip("#").split("#")
+            owner, facility = owner_facility.split("-")
 
-        original_lob = LOB_CODES_REVERSE.get(lob_code, "Unknown LoB").title()
-        original_facility_key = reverse_string(facility).lower()
-        original_facility = next(
-            (k.capitalize() for k, v in FACILITY_CODES.items() if v.lower() == original_facility_key),
-            "Unknown Facility",
-        )
-        original_owner = reverse_string(owner).title()
-        original_area = decipher_location(area).title()
+            original_lob = LOB_CODES_REVERSE.get(lob_code, "Unknown LoB").title()
+            original_facility_key = reverse_string(facility).lower()
+            original_facility = next(
+                (k.capitalize() for k, v in FACILITY_CODES.items() if v.lower() == original_facility_key),
+                "Unknown Facility",
+            )
+            original_owner = reverse_string(owner).title()
+            original_area = decipher_location(area).title()
 
-        if "Unknown" in (original_lob, original_facility):
-            st.error("Invalid Cipher Code. Please check your entry.")
-        else:
-            st.success("Deciphered Details:")
-            st.write(f"LoB: {original_lob}")
-            st.write(f"Owner: {original_owner}")
-            st.write(f"Facility: {original_facility}")
-            st.write(f"Area: {original_area}")
-    except Exception as e:
-        st.error("Invalid Cipher Code. Please check your entry.")
+            if "Unknown" in (original_lob, original_facility):
+                st.error("Invalid Cipher Code. Please check your entry.")
+            else:
+                st.success("Deciphered Details:")
+                st.write(f"LoB: {original_lob}")
+                st.write(f"Owner: {original_owner}")
+                st.write(f"Facility: {original_facility}")
+                st.write(f"Area: {original_area}")
+        except ValueError:
+            st.error("Invalid Cipher Code format. Please use the correct format.")
+        except Exception as e:
+            st.error("An unexpected error occurred while deciphering the code.")
