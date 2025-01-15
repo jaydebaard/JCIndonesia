@@ -59,10 +59,22 @@ def decipher_location(location):
 st.title("SFDC Opportunity Secret Name Generator")
 
 # Input fields
-lob = st.text_input("Enter LoB (i.e. Airside/Chiller/Control/Fire/Security/Digital Solution):").strip().lower()
-owner = st.text_input("Enter 4 digits abbreviation of building owner (i.e., PTBA, BBRI, UNVR, TLKM, etc.):").strip()
-building = st.text_input("Enter Building Type (i.e., Office, Mall, Data Center, etc.):").strip().lower()
-area = st.text_input("Enter Project Area (i.e., Cimanggis):").strip()
+lob = st.text_input(
+    "Enter LoB (e.g., Airside, Chiller, Control, Fire, Security, Digital Solution):",
+    placeholder="Enter LoB (e.g., Chiller)",
+).strip().lower()
+owner = st.text_input(
+    "Enter a 4-character abbreviation of the building owner (e.g., PTBA, BBRI):",
+    placeholder="Enter owner abbreviation (e.g., PTBA)",
+).strip()
+building = st.text_input(
+    "Enter Building Type (e.g., Office, Mall, Data Center):",
+    placeholder="Enter building type (e.g., Office)",
+).strip().lower()
+area = st.text_input(
+    "Enter Project Area (e.g., Cimanggis):",
+    placeholder="Enter project area (e.g., Cimanggis)",
+).strip()
 
 # Button to generate opportunity name
 if st.button("Generate Opportunity Name"):
@@ -70,18 +82,19 @@ if st.button("Generate Opportunity Name"):
 
     # Validate inputs
     if lob not in LOB_CODES:
-        st.error("Invalid LoB. Try with the correct word.")
+        st.error("Invalid LoB. Please try again with a correct option.")
         error = True
-    if not owner:
-        st.error("Invalid End Customer Name. Please provide a valid abbreviation.")
+    if not owner or len(owner) != 4:
+        st.error("Invalid owner abbreviation. It must be 4 characters.")
         error = True
     if building not in FACILITY_CODES:
-        st.error("Invalid Building Type. Try with the correct word.")
+        st.error("Invalid Building Type. Please try again with a correct option.")
         error = True
     if not area:
         st.error("Invalid Project Area. Please provide a valid area.")
         error = True
 
+    # Generate opportunity name if no errors
     if not error:
         lob_code = LOB_CODES[lob]
         facility_code = FACILITY_CODES[building]
@@ -96,11 +109,14 @@ if st.button("Generate Opportunity Name"):
 
 # Button to copy the last generated code
 if "last_generated_code" in st.session_state and st.button("Copy to Clipboard"):
-    st.experimental_set_query_params(opportunity_name=st.session_state["last_generated_code"])
+    st.query_params(opportunity_name=st.session_state["last_generated_code"])
     st.success("Generated code copied to clipboard!")
 
 # Input to decipher code
-cipher = st.text_input("Enter Cipher Code to Decipher:")
+cipher = st.text_input(
+    "Enter Cipher Code to Decipher:",
+    placeholder="Enter cipher code (e.g., #Alpha#Sbtp-Efo#{Sigm})",
+)
 
 if st.button("Decipher Code"):
     try:
@@ -122,3 +138,4 @@ if st.button("Decipher Code"):
             st.write(f"Area: {original_area}")
     except Exception as e:
         st.error("Invalid Cipher Code. Please check your entry.")
+
