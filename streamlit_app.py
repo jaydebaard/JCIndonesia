@@ -21,17 +21,23 @@ FACILITY_CODES = {
     "industrial": "IND",
     "data center": "DCT",
     "residential": "RES",
+    "House": "HOU",
+    "Housing": "HOU",
     "hospital": "HOS",
     "warehouse": "WRH",
     "retail": "RTL",
-    "energy plant": "EPL",
+    "plant": "EPL",
     "government office": "GOV",
-    "sports facility": "SPT",
+    "government": "GOV",
+    "sports": "SPT",
+    "sport": "SPT",
+    "stadium": "STA",
     "education center": "EDU",
     "entertainment center": "ENT",
     "factory": "FCT",
     "airport": "APT",
     "train station": "STN",
+    "train": "STN",
     "logistics hub": "LGH",
 }
 
@@ -78,41 +84,4 @@ if st.button("Generate Opportunity Name"):
 
     if not error:
         lob_code = LOB_CODES[lob]
-        facility_code = FACILITY_CODES[building]
-        reversed_owner = reverse_string(owner)
-        reversed_facility = reverse_string(facility_code)
-        reversed_area = reverse_string(area[:4].upper())
-
-        opportunity_name = f"#{lob_code}#{reversed_owner}-{reversed_facility}#{reversed_area}"
-        st.success("Generated Opportunity Name:")
-        st.code(opportunity_name)
-        st.session_state["last_generated_code"] = opportunity_name
-
-# Button to copy the last generated code
-if "last_generated_code" in st.session_state and st.button("Copy to Clipboard"):
-    st.experimental_set_query_params(opportunity_name=st.session_state["last_generated_code"])
-    st.success("Generated code copied to clipboard!")
-
-# Input to decipher code
-cipher = st.text_input("Enter Cipher Code to Decipher:")
-
-if st.button("Decipher Code"):
-    try:
-        lob_code, owner_facility, area = cipher.strip("#").split("#")
-        owner, facility = owner_facility.split("-")
-
-        original_lob = LOB_CODES_REVERSE.get(lob_code, "Unknown LoB")
-        original_facility = FACILITY_CODES_REVERSE.get(reverse_string(facility), "Unknown Facility")
-        original_owner = reverse_string(owner)
-        original_area = decipher_location(area)
-
-        if "Unknown" in (original_lob, original_facility):
-            st.error("Invalid Cipher Code. Please check your entry.")
-        else:
-            st.success("Deciphered Details:")
-            st.write(f"LoB: {original_lob}")
-            st.write(f"Owner: {original_owner}")
-            st.write(f"Facility: {original_facility}")
-            st.write(f"Area: {original_area}")
-    except Exception as e:
-        st.error("Invalid Cipher Code. Please check your entry.")
+        facility_code = FACILITY_CODES[building
