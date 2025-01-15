@@ -112,6 +112,7 @@ if st.button("Generate Code"):
             opportunity_name = f"#{lob_code}#{reversed_owner}-{reversed_facility}#{reversed_area}"
             st.success("Generated Opportunity Name:")
             st.code(opportunity_name)
+            st.info("Copy this code to your SFDC Opportunity Name field.")  # Notification added here
 
 # Input to decipher code
 cipher = st.text_input(
