@@ -3,12 +3,12 @@ import streamlit as st
 
 # Data mappings based on the provided rules
 LOB_CODES = {
-    "chiller": "chiller",
-    "airside": "airside",
-    "control": "control",
-    "fire": "fire",
-    "security": "security",
-    "digital solution": "digital solution",
+    "chiller": "Chiller",
+    "airside": "Airside",
+    "control": "Control",
+    "fire": "Fire",
+    "security": "Security",
+    "digital solution": "Digital",
 }
 
 FACILITY_CODES = {
