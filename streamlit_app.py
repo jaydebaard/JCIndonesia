@@ -72,7 +72,7 @@ lob = st.text_input(
 ).strip().lower()
 
 owner = st.text_input(
-    "Enter 4 abbreviation letters of the building owner name (e.g., CPTR, SMRC, PTBA, BBRI):",
+    "Enter 4 abbreviation letters of the building owner name (e.g., Ciputra = CPTR, Sumarecon = SMRC, Pakuwon = PKWN etc.):",
     placeholder="Must be exactly 4 letters",
     max_chars=4,  # Limit input to 4 characters
 ).strip()
@@ -118,7 +118,7 @@ if st.button("Generate Code"):
             account_name = "PT Johnson Controls Indonesia"
             st.success("Account Name:")
             st.code(account_name)
-            st.info("Copy this to the account name in SFDC.")  # Additional notification
+            st.info("Copy this to the account name/facility owner in SFDC.")  # Additional notification
 
 # Input to decipher code
 cipher = st.text_input(
