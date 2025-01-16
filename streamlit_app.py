@@ -78,7 +78,7 @@ owner = st.text_input(
 ).strip()
 
 building = st.text_input(
-    "Enter Building Type (e.g., Office, Mall, Data Center):",
+    "Enter Building Type (e.g., Office, Mall, Data Center, factory etc.):",
     placeholder="Enter building type (e.g., Office)",
 ).strip().lower()
 area = st.text_input(
