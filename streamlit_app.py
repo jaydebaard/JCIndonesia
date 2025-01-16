@@ -63,7 +63,7 @@ def get_closest_match(input_str, valid_options):
 
 
 # Streamlit app title
-st.title("SFDC Opportunity Secret Name Generator")
+st.title("SFDC Opportunity Secret Code Generator")
 
 # Input fields
 lob = st.text_input(
