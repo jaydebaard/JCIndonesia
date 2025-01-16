@@ -73,7 +73,7 @@ lob = st.text_input(
 
 owner = st.text_input(
     "Enter 4 abbreviation letters of the building owner name (e.g., Ciputra = CPTR, Sumarecon = SMRC, Pakuwon = PKWN etc.):",
-    placeholder="Must be exactly 4 letters",
+    placeholder="Must be 4 letters",
     max_chars=4,  # Limit input to 4 characters
 ).strip()
 
