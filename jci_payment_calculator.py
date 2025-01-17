@@ -1,8 +1,8 @@
 import streamlit as st
 
-# Display Johnson Controls Logo
+# Display Johnson Controls Logo from Local File
 st.image(
-    "https://upload.wikimedia.org/wikipedia/en/thumb/3/39/Johnson_Controls_logo.svg/1200px-Johnson_Controls_logo.svg.png",
+    "johnson_controls_logo.png",  # Path to the local logo file
     width=150,
     use_container_width=False,
     caption="Johnson Controls",
