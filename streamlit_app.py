@@ -61,13 +61,17 @@ st.markdown(
     """
     <style>
     body {
-        background-color: #f8f9fa;
+        background-color: #f4f4f4; /* Light background for contrast */
     }
     .stApp {
         background-color: #ffffff;
         border-radius: 10px;
         padding: 20px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: 1px solid #444444; /* Darker border */
+    }
+    h1, h2, h3, h4, h5, h6, p, label, div, .stAlert, .stCode, .stMarkdown, .stText {
+        color: #222222 !important; /* Darker font color for all text */
     }
     .stButton button {
         background-color: #007BFF;
@@ -77,11 +81,19 @@ st.markdown(
         font-size: 16px;
     }
     .stButton button:hover {
-        background-color: #0056b3;
+        background-color: #0056b3; /* Darker blue on hover */
     }
-    h1, h2 {
-        text-align: center;
-        color: #007BFF;
+    .stMarkdown pre code {
+        background-color: #f8f9fa;
+        color: #222222 !important;
+        border: 1px solid #444444; /* Darker border for code blocks */
+    }
+    .stTextInput, .stNumberInput, .stTextArea, .stSelectbox {
+        color: #222222 !important;
+        border-color: #444444 !important; /* Darker borders for input fields */
+    }
+    hr {
+        border-top: 1px solid #444444; /* Darker horizontal rules */
     }
     </style>
     """,
