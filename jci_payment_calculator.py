@@ -50,7 +50,7 @@ if st.button("Calculate Average Payment Days"):
         st.success("Calculation Results:")
         st.write(f"**Average Payment Days:** {weighted_days:.2f} days")
         st.write(f"**Payment Type:** {payment_type}")
-        st.write(f"**Comparison:** This is {difference_message}")
+        st.write(f"**Note:** This is {difference_message}")
         st.write("**Approvers:**")
         st.text(approvers)
         st.info("Please align with Bu Morina. The data is based on DOA Approval Report Jan 2025.")
