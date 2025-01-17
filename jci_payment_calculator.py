@@ -41,7 +41,7 @@ if st.button("Calculate Average Payment Days"):
             approvers = (
                 "L60 BU President: Anu Rathninde\n"
                 "L70 Corporate Management: Marc Vandiepenbeeck\n"
-                "L40 Credit Department: Mark Harcek/Laura McAleavey"
+                "L40 Credit Department: Mark Harcek"
             )
         else:
             approvers = "Unknown - Invalid range."
