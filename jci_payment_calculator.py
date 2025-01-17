@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Streamlit App Title
-st.title("JCI Payment Days Calculator")
+st.title("JCI SoV DoA Calculator")
 
 # Input Fields
 st.header("Enter Payment Details")
@@ -53,11 +53,11 @@ if st.button("Calculate Average Payment Days"):
         st.write(f"**Remarks:** This is {difference_message}")
         st.write("**Approvers:**")
         st.text(approvers)
-        st.info("Please align with Bu Morina. The data is based on DOA Approval Report Jan 2025.")
+        st.info("Please align with Bu Morina as finance controler (L20 Finance). The data is based on DOA Approval Report Jan 2025.")
 
     except Exception as e:
         st.error("An error occurred during the calculation. Please check your inputs.")
 
 # Footer
 st.write("---")
-st.write("Developed for JCI Payment Days Analysis.")
+st.write("Developed for JCI SoV DoA.")
