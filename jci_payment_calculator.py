@@ -5,7 +5,7 @@ st.markdown(
     """
     <style>
     body {
-        background-color: #f4f4f4;
+        background-color: #f4f4f4; /* Light background for good contrast */
     }
     .stApp {
         background-color: #ffffff;
@@ -13,11 +13,11 @@ st.markdown(
         padding: 20px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    h1, h2, h3, h4, h5, h6, p, label, div {
-        color: #222222; /* Darker font color for all text */
+    h1, h2, h3, h4, h5, h6, p, label, div, .stAlert, .stCode, .stMarkdown, .stText {
+        color: #222222 !important; /* Darker font color for all text */
     }
     .stButton button {
-        background-color: #007BFF; /* Vibrant blue */
+        background-color: #007BFF; /* Vibrant blue for buttons */
         color: white;
         border-radius: 5px;
         padding: 10px 20px;
@@ -26,8 +26,12 @@ st.markdown(
     .stButton button:hover {
         background-color: #0056b3; /* Darker blue on hover */
     }
-    .stAlert {
-        color: #222222; /* Darker text for alerts */
+    .stMarkdown pre code {
+        background-color: #f8f9fa;
+        color: #222222 !important;
+    }
+    .stTextInput, .stNumberInput, .stTextArea, .stSelectbox {
+        color: #222222 !important;
     }
     </style>
     """,
