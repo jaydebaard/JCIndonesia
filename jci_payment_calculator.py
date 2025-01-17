@@ -3,10 +3,26 @@ import streamlit as st
 # Streamlit App Title
 st.title("PT JCI SoV DoA Calculator")
 
+# Add custom CSS for styling input fields
+st.markdown(
+    """
+    <style>
+    input:placeholder-shown {
+        color: lightgray !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # Input Fields
 st.header("Enter Payment Details")
-down_payment = st.number_input("Down Payment Before Shipment (%)", min_value=0, max_value=100, step=1, value=30, format="%d")
-after_payment_days = st.number_input("Payment After Delivery (Days)", min_value=0, step=1, value=30)
+down_payment = st.number_input(
+    "Down Payment Before Shipment (%)", min_value=0, max_value=100, step=1, value=30, format="%d"
+)
+after_payment_days = st.number_input(
+    "Payment After Delivery (Days)", min_value=0, step=1, value=30
+)
 
 # Calculate Button
 if st.button("Calculate Average Payment Days"):
