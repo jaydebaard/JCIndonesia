@@ -5,7 +5,7 @@ st.title("JCI Payment Days Calculator")
 
 # Input Fields
 st.header("Enter Payment Details")
-down_payment = st.number_input("Down Payment Before Shipment (%)", min_value=0.0, max_value=100.0, step=1.0, value=30.0)
+down_payment = st.number_input("Down Payment Before Shipment (%)", min_value=0, max_value=100, step=1, value=30, format="%d")
 after_payment_days = st.number_input("Payment Days After Delivery (Days)", min_value=0, step=1, value=60)
 
 # Calculate Button
