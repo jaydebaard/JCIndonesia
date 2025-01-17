@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Streamlit App Title
-st.title("PT JCI Payment Days Calculator")
+st.title("PT JCI SOV DOA Calculator")
 
 # Input Fields
 st.header("Enter Payment Details")
@@ -32,16 +32,13 @@ if st.button("Calculate Average Payment Days"):
         # Determine Approvers
         if weighted_days <= 30:
             approvers = "No approver needed."
-        elif 30 < weighted_days <= 45:
+        elif 31 <= weighted_days <= 45:
+            approvers = "L50 Operations/Departmental: Peter Ferguson"
+        elif weighted_days > 45:
             approvers = (
                 "L60 BU President: Anu Rathninde\n"
                 "L70 Corporate Management: Marc Vandiepenbeeck\n"
-                "L40 Credit Department: Mark Harcek/Laura McAleavey"
-            )
-        elif weighted_days > 45:
-            approvers = (
-                "L50 Operations/Departmental: Peter Ferguson\n"
-                "L60 Finance: Alessandro Vacca"
+                "L40 Credit Department: Mark Harcek"
             )
         else:
             approvers = "Unknown - Invalid range."
@@ -60,4 +57,4 @@ if st.button("Calculate Average Payment Days"):
 
 # Footer
 st.write("---")
-st.write("Developed for PT JCI Payment Days.")
+st.write("Developed for PT JCI SOV DOA.")
