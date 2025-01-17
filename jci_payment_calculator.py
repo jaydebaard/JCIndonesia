@@ -1,13 +1,5 @@
 import streamlit as st
 
-# Display Johnson Controls Logo from Local File
-st.image(
-    "johnson_controls_logo.png",  # Path to the local logo file
-    width=150,
-    use_container_width=False,
-    caption="Johnson Controls",
-)
-
 # Streamlit App Title
 st.title("JCI Payment Days Calculator")
 
