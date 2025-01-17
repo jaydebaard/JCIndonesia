@@ -4,7 +4,7 @@ import streamlit as st
 st.image(
     "https://upload.wikimedia.org/wikipedia/en/thumb/3/39/Johnson_Controls_logo.svg/1200px-Johnson_Controls_logo.svg.png",
     width=150,
-    use_column_width=False,
+    use_container_width=False,
     caption="Johnson Controls",
 )
 
