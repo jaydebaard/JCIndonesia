@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Streamlit App Title
-st.title("JCI SoV DoA Calculator")
+st.title("PT JCI SoV DoA Calculator")
 
 # Input Fields
 st.header("Enter Payment Details")
@@ -49,7 +49,7 @@ if st.button("Calculate Average Payment Days"):
         # Display Results
         st.success("Calculation Results:")
         st.write(f"**Average Payment Days:** {weighted_days:.2f} days")
-        st.write(f"**Payment Type:** {payment_type}")
+        st.write(f"**Payment Category:** {payment_type}")
         st.write(f"**Remarks:** This is {difference_message}")
         st.write("**Approvers:**")
         st.text(approvers)
@@ -60,4 +60,4 @@ if st.button("Calculate Average Payment Days"):
 
 # Footer
 st.write("---")
-st.write("Developed for JCI SoV DoA.")
+st.write("Developed for PT JCI SoV DoA.")
