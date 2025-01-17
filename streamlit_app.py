@@ -1,7 +1,7 @@
 import difflib
 import streamlit as st
 
-# Data mappings based on the provided rules
+# Data mappings
 LOB_CODES = {
     "chiller": "Chiller",
     "airside": "Airside",
@@ -45,62 +45,90 @@ FACILITY_CODES = {
 LOB_CODES_REVERSE = {v: k.capitalize() for k, v in LOB_CODES.items()}
 FACILITY_CODES_REVERSE = {v: k.lower() for k, v in FACILITY_CODES.items()}
 
-
-# Function to reverse a string
+# Utility functions
 def reverse_string(s):
     return s[::-1]
 
-
-# Function to decipher the location
 def decipher_location(location):
     return reverse_string(location).capitalize()
 
-
-# Function to find the closest match for a string
 def get_closest_match(input_str, valid_options):
     matches = difflib.get_close_matches(input_str, valid_options, n=1, cutoff=0.6)
     return matches[0] if matches else None
 
+# Custom CSS for styling
+st.markdown(
+    """
+    <style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .stApp {
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .stButton button {
+        background-color: #007BFF;
+        color: white;
+        border-radius: 5px;
+        padding: 10px 20px;
+        font-size: 16px;
+    }
+    .stButton button:hover {
+        background-color: #0056b3;
+    }
+    h1, h2 {
+        text-align: center;
+        color: #007BFF;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 # Streamlit app title
-st.title("SFDC Opportunity Secret Code Generator")
+st.title("🔐 SFDC Opportunity Secret Code Generator")
 
-# Input fields
+# Input Fields with Icons
+st.subheader("✨ Input Details")
 lob = st.text_input(
-    "Enter LoB (e.g., Airside, Chiller, Control, Fire, Security, Digital Solution):",
+    "🔽 Enter LoB (e.g., Chiller, Airside, Fire):",
     placeholder="Enter LoB (e.g., Chiller)",
 ).strip().lower()
 
 owner = st.text_input(
-    "Enter 4 abbreviation letters of the building owner name (e.g., Ciputra = CPTR, Sumarecon = SMRC, Pakuwon = PKWN etc.):",
-    placeholder="Must be 4 letters",
-    max_chars=4,  # Limit input to 4 characters
+    "🏢 Enter Building Owner (4 letters):",
+    placeholder="e.g., CPTR, SMRC",
+    max_chars=4,
 ).strip()
 
 building = st.text_input(
-    "Enter Building Type (e.g., Office, Mall, Data Center, factory etc.):",
+    "🏬 Enter Building Type (e.g., Office, Mall):",
     placeholder="Enter building type (e.g., Office)",
 ).strip().lower()
+
 area = st.text_input(
-    "Enter Project Area (e.g., Slipi, Cimanggis):",
+    "📍 Enter Project Area (e.g., Slipi, Cimanggis):",
     placeholder="Enter project area (e.g., Slipi)",
 ).strip()
 
-# Real-time validation for owner field
+# Real-time validation
 if owner and len(owner) != 4:
-    st.error("Owner abbreviation must be exactly 4 characters.")
+    st.error("❗ Owner abbreviation must be exactly 4 characters.")
 
-# Button to generate opportunity name
-if st.button("Generate Code"):
+# Generate Opportunity Code
+if st.button("🚀 Generate Code"):
     if not lob or not owner or len(owner) != 4 or not building or not area:
-        st.error("All fields are required, and the owner abbreviation must be exactly 4 characters.")
+        st.error("⚠️ All fields are required, and the owner abbreviation must be exactly 4 characters.")
     elif lob not in LOB_CODES:
-        st.error("Invalid LoB. Valid options are:")
+        st.error("❌ Invalid LoB. Valid options are:")
         st.write(", ".join(LOB_CODES.keys()))
     else:
         closest_building = get_closest_match(building, FACILITY_CODES.keys())
         if not closest_building:
-            st.error("Invalid Building Type. Valid options are:")
+            st.error("❌ Invalid Building Type. Valid options are:")
             st.write(", ".join(FACILITY_CODES.keys()))
         else:
             lob_code = LOB_CODES[lob]
@@ -110,25 +138,26 @@ if st.button("Generate Code"):
             reversed_area = reverse_string(area[:4].upper()).title()
 
             opportunity_name = f"#{lob_code}#{reversed_owner}-{reversed_facility}#{reversed_area}"
-            st.success("Generated Opportunity Name:")
+            st.success("🎉 Generated Opportunity Name:")
             st.code(opportunity_name)
-            st.info("Copy this code to your SFDC Opportunity Name field.")
+            st.info("✅ Copy this code to your SFDC Opportunity Name field.")
 
-            # Display account name
+            # Display Account Name
             account_name = "PT Johnson Controls Indonesia"
-            st.success("Account Name:")
+            st.success("🏢 Account Name:")
             st.code(account_name)
-            st.info("Copy this to the account name/facility owner in SFDC.")  # Additional notification
+            st.info("✅ Copy this to the account name/facility owner in SFDC.")
 
-# Input to decipher code
+# Decipher Opportunity Code
+st.subheader("🔎 Decipher Opportunity Code")
 cipher = st.text_input(
-    "Enter opportunity code name to Decipher:",
+    "🔐 Enter opportunity code name to Decipher:",
     placeholder="Enter generated code (e.g., #Airside#Sbtp-Efo#Cima)",
 )
 
-if st.button("Decipher Code"):
+if st.button("🕵️‍♂️ Decipher Code"):
     if not cipher:
-        st.error("Please enter a cipher code to decipher.")
+        st.error("⚠️ Please enter a cipher code to decipher.")
     else:
         try:
             lob_code, owner_facility, area = cipher.strip("#").split("#")
@@ -144,14 +173,14 @@ if st.button("Decipher Code"):
             original_area = decipher_location(area).title()
 
             if "Unknown" in (original_lob, original_facility):
-                st.error("Invalid Cipher Code. Please check your entry.")
+                st.error("❌ Invalid Cipher Code. Please check your entry.")
             else:
-                st.success("Deciphered Details:")
-                st.write(f"LoB: {original_lob}")
-                st.write(f"Owner: {original_owner}")
-                st.write(f"Facility: {original_facility}")
-                st.write(f"Area: {original_area}")
+                st.success("🔓 Deciphered Details:")
+                st.write(f"**LoB:** {original_lob}")
+                st.write(f"**Owner:** {original_owner}")
+                st.write(f"**Facility:** {original_facility}")
+                st.write(f"**Area:** {original_area}")
         except ValueError:
-            st.error("Invalid Cipher Code format. Please use the correct format.")
+            st.error("❌ Invalid Cipher Code format. Please use the correct format.")
         except Exception as e:
-            st.error("An unexpected error occurred while deciphering the code.")
+            st.error("❌ An unexpected error occurred while deciphering the code.")
