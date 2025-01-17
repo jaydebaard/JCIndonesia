@@ -12,6 +12,7 @@ st.markdown(
         border-radius: 10px;
         padding: 20px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: 1px solid #444444; /* Darker border around the app */
     }
     h1, h2, h3, h4, h5, h6, p, label, div, .stAlert, .stCode, .stMarkdown, .stText {
         color: #222222 !important; /* Darker font color for all text */
@@ -29,9 +30,17 @@ st.markdown(
     .stMarkdown pre code {
         background-color: #f8f9fa;
         color: #222222 !important;
+        border: 1px solid #444444; /* Darker border for code blocks */
     }
     .stTextInput, .stNumberInput, .stTextArea, .stSelectbox {
         color: #222222 !important;
+        border-color: #444444 !important; /* Darker border for input fields */
+    }
+    .stDivider {
+        border-top: 2px solid #444444 !important; /* Darker line for dividers */
+    }
+    hr {
+        border-top: 1px solid #444444; /* Darker horizontal rules */
     }
     </style>
     """,
@@ -42,7 +51,7 @@ st.markdown(
 st.title("📊 PT JCI SoV DoA Calculator")
 
 # Decorative Section Divider
-st.markdown("---")
+st.markdown("---")  # This divider will now have a darker color
 st.subheader("Enter Payment Details 📝")
 
 # Input Fields
