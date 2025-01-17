@@ -53,7 +53,7 @@ if st.button("Calculate Average Payment Days"):
         st.write(f"**Remarks:** This is {difference_message}")
         st.write("**Approvers:**")
         st.text(approvers)
-        st.info("Please align with Bu Morina as finance controler (L20 Finance). The data is based on DOA Approval Report Jan 2025.")
+        st.info("Please align with Morina Normalita (finance controler-L20 Finance). The data is based on DOA Approval Report Jan 2025.")
 
     except Exception as e:
         st.error("An error occurred during the calculation. Please check your inputs.")
