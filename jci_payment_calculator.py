@@ -13,12 +13,8 @@ st.markdown(
         padding: 20px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    h1, h2 {
-        color: #333333; /* Dark gray for better contrast */
-        text-align: center;
-    }
-    p, label {
-        color: #333333; /* Match with header color for consistency */
+    h1, h2, h3, h4, h5, h6, p, label, div {
+        color: #222222; /* Darker font color for all text */
     }
     .stButton button {
         background-color: #007BFF; /* Vibrant blue */
@@ -29,6 +25,9 @@ st.markdown(
     }
     .stButton button:hover {
         background-color: #0056b3; /* Darker blue on hover */
+    }
+    .stAlert {
+        color: #222222; /* Darker text for alerts */
     }
     </style>
     """,
@@ -112,7 +111,7 @@ if st.button("🚀 Calculate Average Payment Days"):
 st.markdown("---")
 st.markdown(
     """
-    <div style='text-align: center; color: #333333;'>
+    <div style='text-align: center; color: #222222;'>
         Developed for PT JCI SoV DoA. <br>
         🚀 Powered by Streamlit.
     </div>
