@@ -3,6 +3,27 @@ import pandas as pd
 from datetime import date
 import io
 import matplotlib.pyplot as plt
+import json
+import os
+
+# File to store expenses persistently
+EXPENSES_FILE = "expenses.json"
+
+# Function to load expenses from file
+def load_expenses():
+    if os.path.exists(EXPENSES_FILE):
+        with open(EXPENSES_FILE, "r") as file:
+            return json.load(file)
+    return []
+
+# Function to save expenses to file
+def save_expenses(expenses):
+    with open(EXPENSES_FILE, "w") as file:
+        json.dump(expenses, file)
+
+# Load existing expenses into session state
+if "expenses" not in st.session_state:
+    st.session_state.expenses = load_expenses()
 
 # Set the page title with a subtitle
 st.markdown("# Expense Calculator")
@@ -23,10 +44,6 @@ categories = [
     "Tolls",
     "Others (with note)",
 ]
-
-# Initialize session state to store expenses
-if "expenses" not in st.session_state:
-    st.session_state.expenses = []
 
 # Create a form for expense input
 with st.form("expense_form"):
@@ -57,18 +74,20 @@ with st.form("expense_form"):
 
         if clean_amount is not None:
             # Append the new expense to the session state
-            st.session_state.expenses.append({
+            new_expense = {
                 "Date": formatted_date,
                 "Category": category,
                 "Amount (Rp)": clean_amount,
                 "Note": note,
-            })
+            }
+            st.session_state.expenses.append(new_expense)
+            save_expenses(st.session_state.expenses)  # Save to file
             st.success("✅ Expense added successfully!")
 
 # Display the list of expenses
 if st.session_state.expenses:
     st.subheader("Expense Summary")
-    
+
     # Convert to DataFrame for better presentation
     df = pd.DataFrame(st.session_state.expenses)
     st.dataframe(df, use_container_width=True)
