@@ -3,8 +3,14 @@ import pandas as pd
 from datetime import date
 import io
 
-# Set the page title
-st.title("Expense Calculator")
+# Set the page title with a subtitle
+st.markdown("# Expense Calculator")
+st.markdown("### Track your daily expenses with ease")
+
+# Add a sidebar for navigation
+st.sidebar.title("Navigation")
+st.sidebar.info("Use this app to calculate and track your expenses.")
+st.sidebar.image("https://via.placeholder.com/150", caption="Expense Tracker", use_column_width=True)
 
 # Categories for expense inputs
 categories = [
@@ -23,21 +29,21 @@ if "expenses" not in st.session_state:
 
 # Create a form for expense input
 with st.form("expense_form"):
-    st.header("Add New Expense")
+    st.subheader("Add New Expense")
 
-    transaction_date = st.date_input("Date of Transaction", value=date.today())
+    transaction_date = st.date_input("📅 Date of Transaction", value=date.today())
 
-    category = st.selectbox("Category", categories)
+    category = st.selectbox("📂 Category", categories)
 
     amount = st.number_input(
-        "Amount (in currency of your choice)", min_value=0.0, step=0.01, format="%.2f"
+        "💵 Amount (in Rupiah)", min_value=0.0, step=1000.0, format="%.2f"
     )
 
     note = ""
     if category == "Others (with note)":
-        note = st.text_input("Note (optional)")
+        note = st.text_input("📝 Note (optional)")
 
-    submitted = st.form_submit_button("Add Expense")
+    submitted = st.form_submit_button("➕ Add Expense")
 
     if submitted:
         # Format the date to day, month, year
@@ -47,27 +53,30 @@ with st.form("expense_form"):
         st.session_state.expenses.append({
             "Date": formatted_date,
             "Category": category,
-            "Amount": amount,
+            "Amount (Rp)": amount,
             "Note": note,
         })
-        st.success("Expense added successfully!")
+        st.success("✅ Expense added successfully!")
 
 # Display the list of expenses
 if st.session_state.expenses:
-    st.header("Expense Summary")
-
+    st.subheader("Expense Summary")
+    
     # Convert to DataFrame for better presentation
     df = pd.DataFrame(st.session_state.expenses)
-    st.dataframe(df)
+    st.dataframe(df, use_container_width=True)
 
     # Display the total expenses
-    total_expenses = df["Amount"].sum()
-    st.write(f"**Total Expenses:** {total_expenses:.2f}")
+    total_expenses = df["Amount (Rp)"].sum()
+    st.write(f"### 💰 Total Expenses: Rp {total_expenses:,.2f}")
+
+    # Add separator
+    st.markdown("---")
 
     # Download option for the expenses as CSV
     csv = df.to_csv(index=False)
     st.download_button(
-        label="Download Expenses as CSV",
+        label="⬇️ Download Expenses as CSV",
         data=csv,
         file_name="expenses.csv",
         mime="text/csv",
@@ -79,10 +88,10 @@ if st.session_state.expenses:
         df.to_excel(writer, index=False, sheet_name="Expenses")
         writer.save()
     st.download_button(
-        label="Download Expenses as Excel",
+        label="⬇️ Download Expenses as Excel",
         data=output.getvalue(),
         file_name="expenses.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 else:
-    st.info("No expenses recorded yet.")
+    st.info("No expenses recorded yet. Start by adding your first expense above!")
