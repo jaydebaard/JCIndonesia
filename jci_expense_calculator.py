@@ -35,9 +35,7 @@ with st.form("expense_form"):
 
     category = st.selectbox("📂 Category", categories)
 
-    amount = st.number_input(
-        "💵 Amount (in Rupiah)", min_value=0.0, step=1000.0, format="%.2f"
-    )
+    amount = st.text_input("💵 Amount (in Rupiah, e.g., Rp. 5,000,000)")
 
     note = ""
     if category == "Others (with note)":
@@ -49,14 +47,22 @@ with st.form("expense_form"):
         # Format the date to day, month, year
         formatted_date = transaction_date.strftime("%d-%m-%Y")
 
-        # Append the new expense to the session state
-        st.session_state.expenses.append({
-            "Date": formatted_date,
-            "Category": category,
-            "Amount (Rp)": amount,
-            "Note": note,
-        })
-        st.success("✅ Expense added successfully!")
+        # Clean and convert the amount to a numeric value
+        try:
+            clean_amount = float(amount.replace("Rp.", "").replace(",", ""))
+        except ValueError:
+            st.error("Please enter a valid amount in the format 'Rp. 5,000,000'")
+            clean_amount = None
+
+        if clean_amount is not None:
+            # Append the new expense to the session state
+            st.session_state.expenses.append({
+                "Date": formatted_date,
+                "Category": category,
+                "Amount (Rp)": clean_amount,
+                "Note": note,
+            })
+            st.success("✅ Expense added successfully!")
 
 # Display the list of expenses
 if st.session_state.expenses:
@@ -64,17 +70,18 @@ if st.session_state.expenses:
     
     # Convert to DataFrame for better presentation
     df = pd.DataFrame(st.session_state.expenses)
+    df["Amount (Rp)"] = df["Amount (Rp)"].apply(lambda x: f"Rp. {x:,.0f}")
     st.dataframe(df, use_container_width=True)
 
     # Display the total expenses
-    total_expenses = df["Amount (Rp)"].sum()
-    st.write(f"### 💰 Total Expenses: Rp {total_expenses:,.2f}")
+    total_expenses = sum(float(entry["Amount (Rp)"].replace("Rp. ", "").replace(",", "")) for entry in st.session_state.expenses)
+    st.write(f"### 💰 Total Expenses: Rp. {total_expenses:,.0f}")
 
     # Add separator
     st.markdown("---")
 
     # Download option for the expenses as CSV
-    csv = df.to_csv(index=False)
+    csv = pd.DataFrame(st.session_state.expenses).to_csv(index=False)
     st.download_button(
         label="⬇️ Download Expenses as CSV",
         data=csv,
@@ -85,7 +92,7 @@ if st.session_state.expenses:
     # Download option for the expenses as Excel
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-        df.to_excel(writer, index=False, sheet_name="Expenses")
+        pd.DataFrame(st.session_state.expenses).to_excel(writer, index=False, sheet_name="Expenses")
         writer.save()
     st.download_button(
         label="⬇️ Download Expenses as Excel",
