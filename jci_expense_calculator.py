@@ -45,6 +45,34 @@ categories = [
     "Others (with note)",
 ]
 
+# File upload for importing expenses
+st.sidebar.subheader("Import Expenses")
+uploaded_file = st.sidebar.file_uploader("Upload CSV or Excel file", type=["csv", "xlsx"])
+if uploaded_file:
+    try:
+        if uploaded_file.name.endswith(".csv"):
+            imported_data = pd.read_csv(uploaded_file)
+        elif uploaded_file.name.endswith(".xlsx"):
+            imported_data = pd.read_excel(uploaded_file)
+
+        # Ensure required columns are present
+        required_columns = {"Date", "Category", "Amount (Rp)", "Note"}
+        if not required_columns.issubset(imported_data.columns):
+            st.sidebar.error("The file must contain the following columns: Date, Category, Amount (Rp), Note")
+        else:
+            # Append imported data to session state and save
+            for _, row in imported_data.iterrows():
+                st.session_state.expenses.append({
+                    "Date": row["Date"],
+                    "Category": row["Category"],
+                    "Amount (Rp)": row["Amount (Rp)"],
+                    "Note": row["Note"],
+                })
+            save_expenses(st.session_state.expenses)
+            st.sidebar.success("Expenses imported successfully!")
+    except Exception as e:
+        st.sidebar.error(f"Error processing the file: {e}")
+
 # Create a form for expense input
 with st.form("expense_form"):
     st.subheader("Add New Expense")
