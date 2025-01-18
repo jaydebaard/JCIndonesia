@@ -70,11 +70,10 @@ if st.session_state.expenses:
     
     # Convert to DataFrame for better presentation
     df = pd.DataFrame(st.session_state.expenses)
-    df["Amount (Rp)"] = df["Amount (Rp)"].apply(lambda x: f"Rp. {x:,.0f}")
     st.dataframe(df, use_container_width=True)
 
     # Display the total expenses
-    total_expenses = sum(float(entry["Amount (Rp)"].replace("Rp. ", "").replace(",", "")) for entry in st.session_state.expenses)
+    total_expenses = sum(entry["Amount (Rp)"] for entry in st.session_state.expenses)
     st.write(f"### 💰 Total Expenses: Rp. {total_expenses:,.0f}")
 
     # Add separator
@@ -93,7 +92,6 @@ if st.session_state.expenses:
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
         pd.DataFrame(st.session_state.expenses).to_excel(writer, index=False, sheet_name="Expenses")
-        writer.save()
     st.download_button(
         label="⬇️ Download Expenses as Excel",
         data=output.getvalue(),
