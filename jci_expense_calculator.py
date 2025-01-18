@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import date
 import io
+import matplotlib.pyplot as plt
 
 # Set the page title with a subtitle
 st.markdown("# Expense Calculator")
@@ -10,7 +11,7 @@ st.markdown("### Track your daily expenses with ease")
 # Add a sidebar for navigation
 st.sidebar.title("Navigation")
 st.sidebar.info("Use this app to calculate and track your expenses.")
-st.sidebar.image("https://via.placeholder.com/150", caption="Expense Tracker", use_column_width=True)
+st.sidebar.image("https://via.placeholder.com/150", caption="Expense Tracker", use_container_width=True)
 
 # Categories for expense inputs
 categories = [
@@ -98,5 +99,13 @@ if st.session_state.expenses:
         file_name="expenses.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
+
+    # Create a pie chart of the expenses
+    st.subheader("Expense Distribution")
+    category_totals = df.groupby("Category")["Amount (Rp)"].sum()
+    fig, ax = plt.subplots()
+    ax.pie(category_totals, labels=category_totals.index, autopct="%1.1f%%", startangle=90)
+    ax.axis("equal")  # Equal aspect ratio ensures that pie is drawn as a circle.
+    st.pyplot(fig)
 else:
     st.info("No expenses recorded yet. Start by adding your first expense above!")
