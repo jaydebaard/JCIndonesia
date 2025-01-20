@@ -183,6 +183,6 @@ if st.session_state.expenses:
     st.subheader("Receipt Images")
     for expense in st.session_state.expenses:
         if "Receipt Path" in expense and expense["Receipt Path"]:
-            st.image(expense["Receipt Path"], caption=f"Receipt for {expense['Category']} on {expense['Date']}", use_column_width=True)
+            st.image(expense["Receipt Path"], caption=f"Receipt for {expense['Category']} on {expense['Date']}", use_container_width=True)
 else:
     st.info("No expenses recorded yet. Start by adding your first expense above!")
