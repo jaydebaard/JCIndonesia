@@ -5,6 +5,8 @@ import io
 import matplotlib.pyplot as plt
 import json
 import os
+from PIL import Image
+import pytesseract
 
 # File to store expenses persistently
 EXPENSES_FILE = "expenses.json"
@@ -24,6 +26,20 @@ def load_expenses():
 def save_expenses(expenses):
     with open(EXPENSES_FILE, "w") as file:
         json.dump(expenses, file)
+
+# Function to extract amount from receipt image
+def extract_amount_from_image(image):
+    try:
+        text = pytesseract.image_to_string(Image.open(image))
+        # Use regex to find patterns of currency in the text
+        import re
+        matches = re.findall(r'\b\d{1,3}(?:,\d{3})*(?:\.\d{2})?\b', text)
+        if matches:
+            # Convert the first match to a numeric value
+            return float(matches[0].replace(",", ""))
+    except Exception as e:
+        st.error(f"Error extracting amount: {e}")
+    return None
 
 # Load existing expenses into session state
 if "expenses" not in st.session_state:
@@ -65,6 +81,12 @@ with st.form("expense_form"):
 
     receipt_image = st.camera_input("📸 Take a picture of the receipt (optional)")
 
+    extracted_amount = None
+    if receipt_image is not None:
+        extracted_amount = extract_amount_from_image(receipt_image)
+        if extracted_amount:
+            st.success(f"Extracted Amount: Rp. {extracted_amount:,.0f}")
+
     submitted = st.form_submit_button("➕ Add Expense")
 
     if submitted:
@@ -73,7 +95,7 @@ with st.form("expense_form"):
 
         # Clean and convert the amount to a numeric value
         try:
-            clean_amount = float(amount.replace("Rp.", "").replace(",", ""))
+            clean_amount = float(amount.replace("Rp.", "").replace(",", "")) if amount else extracted_amount
         except ValueError:
             st.error("Please enter a valid amount in the format 'Rp. 5,000,000'")
             clean_amount = None
