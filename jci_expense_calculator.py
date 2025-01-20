@@ -7,7 +7,6 @@ import json
 import os
 from PIL import Image
 import pytesseract
-from shutil import which
 
 # File to store expenses persistently
 EXPENSES_FILE = "expenses.json"
@@ -15,6 +14,11 @@ IMAGES_FOLDER = "receipt_images"
 
 # Ensure the receipt images folder exists
 os.makedirs(IMAGES_FOLDER, exist_ok=True)
+
+# Function to check if Tesseract is installed
+def is_tesseract_installed():
+    from shutil import which
+    return which("tesseract") is not None
 
 # Function to load expenses from file
 def load_expenses():
@@ -27,10 +31,6 @@ def load_expenses():
 def save_expenses(expenses):
     with open(EXPENSES_FILE, "w") as file:
         json.dump(expenses, file)
-
-# Function to check if Tesseract is installed
-def is_tesseract_installed():
-    return which("tesseract") is not None
 
 # Function to extract amount from receipt image
 def extract_amount_from_image(image):
@@ -135,7 +135,10 @@ if st.session_state.expenses:
 
     # Convert to DataFrame for better presentation
     df = pd.DataFrame(st.session_state.expenses)
-    st.dataframe(df.drop(columns=["Receipt Path"], errors="ignore"), use_container_width=True)
+    if "Receipt Path" in df.columns:
+        st.dataframe(df.drop(columns=["Receipt Path"]), use_container_width=True)
+    else:
+        st.dataframe(df, use_container_width=True)
 
     # Display the total expenses
     total_expenses = sum(entry["Amount (Rp)"] for entry in st.session_state.expenses)
@@ -179,7 +182,7 @@ if st.session_state.expenses:
     # Display attached receipt images
     st.subheader("Receipt Images")
     for expense in st.session_state.expenses:
-        if expense.get("Receipt Path"):
+        if "Receipt Path" in expense and expense["Receipt Path"]:
             st.image(expense["Receipt Path"], caption=f"Receipt for {expense['Category']} on {expense['Date']}", use_column_width=True)
 else:
     st.info("No expenses recorded yet. Start by adding your first expense above!")
