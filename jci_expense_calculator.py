@@ -8,6 +8,10 @@ import os
 
 # File to store expenses persistently
 EXPENSES_FILE = "expenses.json"
+IMAGES_FOLDER = "receipt_images"
+
+# Ensure the receipt images folder exists
+os.makedirs(IMAGES_FOLDER, exist_ok=True)
 
 # Function to load expenses from file
 def load_expenses():
@@ -45,34 +49,6 @@ categories = [
     "Others (with note)",
 ]
 
-# File upload for importing expenses
-st.sidebar.subheader("Import Expenses")
-uploaded_file = st.sidebar.file_uploader("Upload CSV or Excel file", type=["csv", "xlsx"])
-if uploaded_file:
-    try:
-        if uploaded_file.name.endswith(".csv"):
-            imported_data = pd.read_csv(uploaded_file)
-        elif uploaded_file.name.endswith(".xlsx"):
-            imported_data = pd.read_excel(uploaded_file)
-
-        # Ensure required columns are present
-        required_columns = {"Date", "Category", "Amount (Rp)", "Note"}
-        if not required_columns.issubset(imported_data.columns):
-            st.sidebar.error("The file must contain the following columns: Date, Category, Amount (Rp), Note")
-        else:
-            # Append imported data to session state and save
-            for _, row in imported_data.iterrows():
-                st.session_state.expenses.append({
-                    "Date": row["Date"],
-                    "Category": row["Category"],
-                    "Amount (Rp)": row["Amount (Rp)"],
-                    "Note": row["Note"],
-                })
-            save_expenses(st.session_state.expenses)
-            st.sidebar.success("Expenses imported successfully!")
-    except Exception as e:
-        st.sidebar.error(f"Error processing the file: {e}")
-
 # Create a form for expense input
 with st.form("expense_form"):
     st.subheader("Add New Expense")
@@ -86,6 +62,8 @@ with st.form("expense_form"):
     note = ""
     if category == "Others (with note)":
         note = st.text_input("📝 Note (optional)")
+
+    receipt_image = st.camera_input("📸 Take a picture of the receipt (optional)")
 
     submitted = st.form_submit_button("➕ Add Expense")
 
@@ -101,12 +79,20 @@ with st.form("expense_form"):
             clean_amount = None
 
         if clean_amount is not None:
+            # Save the receipt image if provided
+            receipt_path = None
+            if receipt_image is not None:
+                receipt_path = os.path.join(IMAGES_FOLDER, f"receipt_{len(st.session_state.expenses) + 1}.png")
+                with open(receipt_path, "wb") as f:
+                    f.write(receipt_image.getbuffer())
+
             # Append the new expense to the session state
             new_expense = {
                 "Date": formatted_date,
                 "Category": category,
                 "Amount (Rp)": clean_amount,
                 "Note": note,
+                "Receipt Path": receipt_path,
             }
             st.session_state.expenses.append(new_expense)
             save_expenses(st.session_state.expenses)  # Save to file
@@ -118,7 +104,7 @@ if st.session_state.expenses:
 
     # Convert to DataFrame for better presentation
     df = pd.DataFrame(st.session_state.expenses)
-    st.dataframe(df, use_container_width=True)
+    st.dataframe(df.drop(columns=["Receipt Path"]), use_container_width=True)
 
     # Display the total expenses
     total_expenses = sum(entry["Amount (Rp)"] for entry in st.session_state.expenses)
@@ -158,5 +144,11 @@ if st.session_state.expenses:
         st.pyplot(fig)
     else:
         st.info("No data available to generate a pie chart.")
+
+    # Display attached receipt images
+    st.subheader("Receipt Images")
+    for expense in st.session_state.expenses:
+        if expense["Receipt Path"]:
+            st.image(expense["Receipt Path"], caption=f"Receipt for {expense['Category']} on {expense['Date']}", use_column_width=True)
 else:
     st.info("No expenses recorded yet. Start by adding your first expense above!")
