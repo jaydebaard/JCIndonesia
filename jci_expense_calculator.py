@@ -7,6 +7,7 @@ import json
 import os
 from PIL import Image
 import pytesseract
+import re
 
 # File to store expenses persistently
 EXPENSES_FILE = "expenses.json"
@@ -31,11 +32,8 @@ def save_expenses(expenses):
 def extract_amount_from_image(image):
     try:
         text = pytesseract.image_to_string(Image.open(image))
-        # Use regex to find patterns of currency in the text
-        import re
         matches = re.findall(r'\b\d{1,3}(?:,\d{3})*(?:\.\d{2})?\b', text)
         if matches:
-            # Convert the first match to a numeric value
             return float(matches[0].replace(",", ""))
     except Exception as e:
         st.error(f"Error extracting amount: {e}")
@@ -70,9 +68,7 @@ with st.form("expense_form"):
     st.subheader("Add New Expense")
 
     transaction_date = st.date_input("📅 Date of Transaction", value=date.today())
-
     category = st.selectbox("📂 Category", categories)
-
     amount = st.text_input("💵 Amount (in Rupiah, e.g., Rp. 5,000,000)")
 
     note = ""
@@ -90,10 +86,7 @@ with st.form("expense_form"):
     submitted = st.form_submit_button("➕ Add Expense")
 
     if submitted:
-        # Format the date to day, month, year
         formatted_date = transaction_date.strftime("%d-%m-%Y")
-
-        # Clean and convert the amount to a numeric value
         try:
             clean_amount = float(amount.replace("Rp.", "").replace(",", "")) if amount else extracted_amount
         except ValueError:
@@ -101,14 +94,12 @@ with st.form("expense_form"):
             clean_amount = None
 
         if clean_amount is not None:
-            # Save the receipt image if provided
             receipt_path = None
             if receipt_image is not None:
                 receipt_path = os.path.join(IMAGES_FOLDER, f"receipt_{len(st.session_state.expenses) + 1}.png")
                 with open(receipt_path, "wb") as f:
                     f.write(receipt_image.getbuffer())
 
-            # Append the new expense to the session state
             new_expense = {
                 "Date": formatted_date,
                 "Category": category,
@@ -117,60 +108,53 @@ with st.form("expense_form"):
                 "Receipt Path": receipt_path,
             }
             st.session_state.expenses.append(new_expense)
-            save_expenses(st.session_state.expenses)  # Save to file
+            save_expenses(st.session_state.expenses)
             st.success("✅ Expense added successfully!")
 
 # Display the list of expenses
 if st.session_state.expenses:
     st.subheader("Expense Summary")
 
-    # Convert to DataFrame for better presentation
     df = pd.DataFrame(st.session_state.expenses)
-    st.dataframe(df.drop(columns=["Receipt Path"]), use_container_width=True)
 
-    # Display the total expenses
+    # Drop the "Receipt Path" column if it exists
+    if "Receipt Path" in df.columns:
+        df = df.drop(columns=["Receipt Path"])
+
+    st.dataframe(df, use_container_width=True)
+
     total_expenses = sum(entry["Amount (Rp)"] for entry in st.session_state.expenses)
     st.write(f"### 💰 Total Expenses: Rp. {total_expenses:,.0f}")
 
-    # Add separator
     st.markdown("---")
 
-    # Download option for the expenses as CSV
-    csv = pd.DataFrame(st.session_state.expenses).to_csv(index=False)
-    st.download_button(
-        label="⬇️ Download Expenses as CSV",
-        data=csv,
-        file_name="expenses.csv",
-        mime="text/csv",
-    )
+    csv = df.to_csv(index=False)
+    st.download_button("⬇️ Download Expenses as CSV", data=csv, file_name="expenses.csv", mime="text/csv")
 
-    # Download option for the expenses as Excel
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-        pd.DataFrame(st.session_state.expenses).to_excel(writer, index=False, sheet_name="Expenses")
+        df.to_excel(writer, index=False, sheet_name="Expenses")
     st.download_button(
-        label="⬇️ Download Expenses as Excel",
+        "⬇️ Download Expenses as Excel",
         data=output.getvalue(),
         file_name="expenses.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 
-    # Create a pie chart of the expenses
     st.subheader("Expense Distribution")
     category_totals = df.groupby("Category")["Amount (Rp)"].sum()
 
     if not category_totals.empty:
         fig, ax = plt.subplots()
         ax.pie(category_totals, labels=category_totals.index, autopct="%1.1f%%", startangle=90)
-        ax.axis("equal")  # Equal aspect ratio ensures that pie is drawn as a circle.
+        ax.axis("equal")
         st.pyplot(fig)
     else:
         st.info("No data available to generate a pie chart.")
 
-    # Display attached receipt images
     st.subheader("Receipt Images")
     for expense in st.session_state.expenses:
-        if expense["Receipt Path"]:
+        if expense.get("Receipt Path"):
             st.image(expense["Receipt Path"], caption=f"Receipt for {expense['Category']} on {expense['Date']}", use_column_width=True)
 else:
     st.info("No expenses recorded yet. Start by adding your first expense above!")
