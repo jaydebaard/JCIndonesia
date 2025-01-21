@@ -7,8 +7,7 @@ from email.mime.text import MIMEText
 # Generate and save encryption key
 KEY_FILE = "key.key"
 PASSWORD_FILE = "passwords.txt"
-USERNAME = "jaydebaard"
-PASSWORD = "Myexpander22"
+USER_CREDENTIALS_FILE = "user_credentials.txt"
 EMAIL = "anton.sanjaya0889@gmail.com"
 
 def generate_key():
@@ -58,6 +57,22 @@ def retrieve_passwords():
                 continue  # Skip lines that do not match the expected format
     return passwords
 
+def save_user_credentials(username, password, email):
+    """Save user credentials to a file."""
+    encrypted_password = encrypt_password(password)
+    with open(USER_CREDENTIALS_FILE, 'w') as file:
+        file.write(f"{username} | {encrypted_password.decode()} | {email}\n")
+
+def load_user_credentials():
+    """Load user credentials from the file."""
+    if not os.path.exists(USER_CREDENTIALS_FILE):
+        return None, None, None
+    with open(USER_CREDENTIALS_FILE, 'r') as file:
+        line = file.readline().strip()
+        username, encrypted_password, email = line.split(' | ')
+        password = decrypt_password(encrypted_password.encode())
+        return username, password, email
+
 def send_email(subject, body, to_email):
     """Send an email with the given subject and body."""
     try:
@@ -80,53 +95,68 @@ st.title("Password Manager")
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
-if not st.session_state["authenticated"]:
-    st.subheader("Login")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    if st.button("Login"):
-        if username == USERNAME and password == PASSWORD:
-            st.session_state["authenticated"] = True
-            st.success("Logged in successfully.")
+if not os.path.exists(USER_CREDENTIALS_FILE):
+    st.subheader("Set Up New User")
+    new_username = st.text_input("New Username")
+    new_password = st.text_input("New Password", type="password")
+    new_email = st.text_input("Email Address")
+    if st.button("Save User"):
+        if new_username and new_password and new_email:
+            save_user_credentials(new_username, new_password, new_email)
+            st.success("User credentials saved successfully.")
             st.experimental_rerun()
         else:
-            st.error("Invalid username or password.")
-    if st.button("Forgot Password"):
-        send_email(
-            subject="Password Recovery",
-            body=f"Your credentials:\nUsername: {USERNAME}\nPassword: {PASSWORD}",
-            to_email=EMAIL
-        )
-        st.info(f"Credentials have been sent to {EMAIL}.")
+            st.error("Please fill in all fields.")
 else:
-    menu = ["Save Password", "View Passwords"]
-    choice = st.sidebar.selectbox("Menu", menu)
+    saved_username, saved_password, saved_email = load_user_credentials()
 
-    if choice == "Save Password":
-        st.subheader("Save a New Password")
-        service = st.text_input("Service Name")
+    if not st.session_state["authenticated"]:
+        st.subheader("Login")
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
-        if st.button("Save"):
-            if service and username and password:
-                save_password(service, username, password)
-                st.success("Password saved successfully.")
+        if st.button("Login"):
+            if username == saved_username and password == saved_password:
+                st.session_state["authenticated"] = True
+                st.success("Logged in successfully.")
+                st.experimental_rerun()
             else:
-                st.error("Please fill in all fields.")
+                st.error("Invalid username or password.")
+        if st.button("Forgot Password"):
+            send_email(
+                subject="Password Recovery",
+                body=f"Your credentials:\nUsername: {saved_username}\nPassword: {saved_password}",
+                to_email=saved_email
+            )
+            st.info(f"Credentials have been sent to {saved_email}.")
+    else:
+        menu = ["Save Password", "View Passwords"]
+        choice = st.sidebar.selectbox("Menu", menu)
 
-    elif choice == "View Passwords":
-        st.subheader("Stored Passwords")
-        passwords = retrieve_passwords()
-        if passwords:
-            for service, username, password in passwords:
-                st.write(f"**Service:** {service}")
-                st.write(f"**Username:** {username}")
-                st.write(f"**Password:** {password}")
-                st.write("---")
-        else:
-            st.info("No passwords stored yet.")
+        if choice == "Save Password":
+            st.subheader("Save a New Password")
+            service = st.text_input("Service Name")
+            username = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            if st.button("Save"):
+                if service and username and password:
+                    save_password(service, username, password)
+                    st.success("Password saved successfully.")
+                else:
+                    st.error("Please fill in all fields.")
 
-    if st.sidebar.button("Logout"):
-        st.session_state["authenticated"] = False
-        st.success("Logged out successfully.")
-        st.experimental_rerun()
+        elif choice == "View Passwords":
+            st.subheader("Stored Passwords")
+            passwords = retrieve_passwords()
+            if passwords:
+                for service, username, password in passwords:
+                    st.write(f"**Service:** {service}")
+                    st.write(f"**Username:** {username}")
+                    st.write(f"**Password:** {password}")
+                    st.write("---")
+            else:
+                st.info("No passwords stored yet.")
+
+        if st.sidebar.button("Logout"):
+            st.session_state["authenticated"] = False
+            st.success("Logged out successfully.")
+            st.experimental_rerun()
