@@ -7,8 +7,8 @@ from email.mime.text import MIMEText
 # Generate and save encryption key
 KEY_FILE = "key.key"
 PASSWORD_FILE = "passwords.txt"
-USERNAME = "admin"
-PASSWORD = "admin123"
+USERNAME = "jaydebaard"
+PASSWORD = "Myexpander22"
 EMAIL = "anton.sanjaya0889@gmail.com"
 
 def generate_key():
