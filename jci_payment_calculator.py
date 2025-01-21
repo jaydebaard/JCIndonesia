@@ -1,39 +1,63 @@
 import streamlit as st
 import json
 import os
+import pandas as pd
+from datetime import datetime
 
-# File to store visitor count
-VISITOR_FILE = "visitor_count.json"
+# File to store visitor logs
+VISITOR_LOG_FILE = "visitor_logs.json"
 
-# Function to load visitor count
-def load_visitor_count():
-    if os.path.exists(VISITOR_FILE):
-        with open(VISITOR_FILE, "r") as file:
-            data = json.load(file)
-            return data.get("count", 0)
-    return 0
+# Load visitor logs
+def load_visitor_logs():
+    if os.path.exists(VISITOR_LOG_FILE):
+        with open(VISITOR_LOG_FILE, "r") as file:
+            return json.load(file)
+    return []
 
-# Function to save visitor count
-def save_visitor_count(count):
-    with open(VISITOR_FILE, "w") as file:
-        json.dump({"count": count}, file)
+# Save visitor logs
+def save_visitor_logs(logs):
+    with open(VISITOR_LOG_FILE, "w") as file:
+        json.dump(logs, file)
 
-# Track unique visitors in session state
+# Log a new visitor
+def log_visitor():
+    visitor_logs = load_visitor_logs()
+    today = datetime.now().strftime("%Y-%m-%d")
+    visitor_logs.append({"date": today, "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+    save_visitor_logs(visitor_logs)
+
+# Track unique visitors per session
 if "is_visited" not in st.session_state:
     st.session_state.is_visited = False
 
-# Load visitor count
-visitor_count = load_visitor_count()
-
-# Increment count for a new visitor
+# Log visitor if not already logged in this session
 if not st.session_state.is_visited:
-    visitor_count += 1
     st.session_state.is_visited = True
-    save_visitor_count(visitor_count)
+    log_visitor()
 
-# Display visitor count
+# Load logs for analytics
+visitor_logs = load_visitor_logs()
+visitor_df = pd.DataFrame(visitor_logs)
+
+# Sidebar Analytics
 st.sidebar.title("Visitor Analytics")
-st.sidebar.write(f"Total Visitors: {visitor_count}")
+
+# Display total visitors
+total_visitors = len(visitor_logs)
+st.sidebar.metric("Total Visitors", total_visitors)
+
+# Group visitors by date
+if not visitor_df.empty:
+    visitor_by_date = visitor_df.groupby("date").size().reset_index(name="count")
+    st.sidebar.write("### Daily Visitors")
+    st.sidebar.bar_chart(visitor_by_date.set_index("date"))
+
+    # Show detailed visitor logs
+    if st.sidebar.button("Show Visitor Logs"):
+        st.write("### Visitor Logs")
+        st.dataframe(visitor_df)
+else:
+    st.sidebar.write("No visitors yet.")
 
 # Main app logic
 st.title("📊 PT JCI SoV DoA Calculator")
