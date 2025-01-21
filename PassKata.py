@@ -1,3 +1,4 @@
+import streamlit as st
 from cryptography.fernet import Fernet
 import os
 
@@ -10,7 +11,6 @@ def generate_key():
     key = Fernet.generate_key()
     with open(KEY_FILE, 'wb') as key_file:
         key_file.write(key)
-
 
 def load_key():
     """Load the encryption key from file."""
@@ -37,37 +37,48 @@ def save_password(service, username, password):
     with open(PASSWORD_FILE, 'a') as file:
         file.write(f"{service} | {username} | {encrypted_password.decode()}\n")
 
-def retrieve_password():
+def retrieve_passwords():
     """Retrieve and decrypt passwords from the file."""
     if not os.path.exists(PASSWORD_FILE):
-        print("No passwords stored yet.")
-        return
+        return []
 
+    passwords = []
     with open(PASSWORD_FILE, 'r') as file:
         for line in file:
-            service, username, encrypted_password = line.strip().split(' | ')
-            decrypted_password = decrypt_password(encrypted_password.encode())
-            print(f"Service: {service}, Username: {username}, Password: {decrypted_password}")
+            try:
+                service, username, encrypted_password = line.strip().split(' | ')
+                decrypted_password = decrypt_password(encrypted_password.encode())
+                passwords.append((service, username, decrypted_password))
+            except ValueError:
+                continue  # Skip lines that do not match the expected format
+    return passwords
 
-if __name__ == "__main__":
-    print("Password Manager")
-    while True:
-        print("\nOptions:")
-        print("1. Save a new password")
-        print("2. Retrieve saved passwords")
-        print("3. Exit")
-        choice = input("Enter your choice: ")
+# Streamlit UI
+st.title("Password Manager")
 
-        if choice == "1":
-            service = input("Enter the service name: ")
-            username = input("Enter the username: ")
-            password = input("Enter the password: ")
+menu = ["Save Password", "View Passwords"]
+choice = st.sidebar.selectbox("Menu", menu)
+
+if choice == "Save Password":
+    st.subheader("Save a New Password")
+    service = st.text_input("Service Name")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    if st.button("Save"):
+        if service and username and password:
             save_password(service, username, password)
-            print("Password saved successfully.")
-        elif choice == "2":
-            retrieve_password()
-        elif choice == "3":
-            print("Exiting password manager. Goodbye!")
-            break
+            st.success("Password saved successfully.")
         else:
-            print("Invalid choice. Please try again.")
+            st.error("Please fill in all fields.")
+
+elif choice == "View Passwords":
+    st.subheader("Stored Passwords")
+    passwords = retrieve_passwords()
+    if passwords:
+        for service, username, password in passwords:
+            st.write(f"**Service:** {service}")
+            st.write(f"**Username:** {username}")
+            st.write(f"**Password:** {password}")
+            st.write("---")
+    else:
+        st.info("No passwords stored yet.")
