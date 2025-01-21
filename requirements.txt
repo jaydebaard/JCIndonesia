@@ -3,3 +3,4 @@ streamlit
 xlsxwriter
 matplotlib
 pytesseract
+cryptography==41.0.2
