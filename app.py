@@ -2,115 +2,106 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-st.set_page_config(page_title="Kalkulator Biaya Proyek", layout="centered")
-st.title("🧮 Kalkulator Total Biaya Proyek + Akomodasi")
+st.set_page_config(page_title="Kalkulator Proyek + Margin", layout="centered")
+st.title("🧮 Kalkulator Proyek + Biaya + Gross Margin")
 
-# Input user dasar
+st.header("1. Input Biaya Kerja")
 total_days = st.number_input("Total Hari Kerja", min_value=0.0, value=10.0)
-cost_per_hour = st.number_input("Biaya per Jam (USD)", min_value=0.0, value=16.69)
 hours_per_day = st.number_input("Jam Kerja per Hari", min_value=0.0, value=8.0)
+cost_per_hour = st.number_input("Biaya per Jam (USD)", min_value=0.0, value=16.69)
 kurs_usd_to_idr = st.number_input("Kurs USD ke IDR", min_value=0.0, value=16000.0)
-currency = st.radio("Tampilkan Mata Uang", ["IDR (Rupiah)", "USD (Dollar)"])
 
-# Biaya tambahan (akomodasi)
-include_accommodation = st.checkbox("Include Akomodasi?")
+# Akomodasi
+st.header("2. Akomodasi")
+include_accommodation = st.checkbox("Include Akomodasi?", value=True)
 if include_accommodation:
-    flight_cost = st.number_input("Biaya Tiket Pesawat (IDR)", min_value=0.0, value=1600000.0)
-    round_trip = st.checkbox("Round Trip?", value=True)
-    if round_trip:
+    flight_cost = st.number_input("Biaya Tiket (IDR)", value=1_600_000.0)
+    if st.checkbox("Round Trip?", value=True):
         flight_cost *= 2
-    hotel_cost_per_night = st.number_input("Harga Hotel per Malam (IDR)", min_value=0.0, value=700000.0)
-    stay_nights = st.number_input("Jumlah Malam Menginap", min_value=0, value=int(total_days))
-    hotel_cost = hotel_cost_per_night * stay_nights
-    meal_cost = st.number_input("Biaya Makan (Total, IDR)", min_value=0.0, value=1000000.0)
+    hotel_cost = st.number_input("Biaya Hotel per Malam (IDR)", value=700_000.0)
+    stay_nights = st.number_input("Jumlah Malam Menginap", value=int(total_days))
+    meal_cost = st.number_input("Biaya Makan (IDR)", value=1_000_000.0)
 else:
-    flight_cost = hotel_cost = meal_cost = 0.0
+    flight_cost = hotel_cost = meal_cost = stay_nights = 0.0
 
-margin_percent = st.number_input("Margin (%)", min_value=0.0, value=20.0)
-
-# Kalkulasi
+# Perhitungan total biaya kerja
 total_hours = total_days * hours_per_day
 total_cost_usd = total_hours * cost_per_hour
 total_cost_idr = total_cost_usd * kurs_usd_to_idr
-total_cost_with_extras = total_cost_idr + flight_cost + hotel_cost + meal_cost
-final_price_idr = total_cost_with_extras * (1 + margin_percent / 100)
-gross_margin_percent = ((final_price_idr - total_cost_with_extras) / final_price_idr * 100) if final_price_idr else 0
+akomodasi_total = (hotel_cost * stay_nights) + flight_cost + meal_cost
+total_biaya_kerja = total_cost_idr + akomodasi_total
 
-def format_currency(val):
-    if currency == "USD (Dollar)":
-        return f"${val / kurs_usd_to_idr:,.2f}"
-    return f"Rp {val:,.0f}"
+# Input margin
+margin_percent = st.number_input("Markup (%)", value=20.0)
+harga_final = total_biaya_kerja * (1 + margin_percent / 100)
+gross_margin = (harga_final - total_biaya_kerja) / harga_final * 100
 
-# Output hasil
+# COST BREAKDOWN dari gambar
+st.header("3. Input Biaya Proyek")
+labour = st.number_input("Labour (IDR)", value=30_780_000.0)
+sub_contractor = st.number_input("Sub-kontraktor (IDR)", value=14_000_000.0)
+other_expenses = st.number_input("Other Expenses (IDR)", value=3_600_000.0)
+freight = st.number_input("Freight (IDR)", value=2_600_000.0)
+escalation = st.number_input("Eskalasi (IDR)", value=2_039_200.0)
+contingency_percent = st.number_input("Contingency (%)", value=0.4)
+contract_value = st.number_input("Nilai Kontrak (IDR)", value=130_000_000.0)
+
+# Kalkulasi biaya proyek
+subtotal = labour + sub_contractor + other_expenses
+contingency = subtotal * (contingency_percent / 100)
+total_estimate_cost = subtotal + freight + escalation + contingency
+gross_profit = contract_value - total_estimate_cost
+markup_contract = (gross_profit / total_estimate_cost * 100)
+gross_margin_contract = (gross_profit / contract_value * 100)
+
+# Output Hasil
 st.subheader("💰 Hasil Perhitungan")
-st.write(f"Total Jam Kerja: **{total_hours:,.2f} jam**")
-st.write(f"Total Biaya Kerja: {format_currency(total_cost_idr)}")
-if include_accommodation:
-    st.write(f"Total Biaya Tiket: {format_currency(flight_cost)}")
-    st.write(f"Total Biaya Hotel: {format_currency(hotel_cost)}")
-    st.write(f"Total Biaya Makan: {format_currency(meal_cost)}")
-st.write(f"Total Biaya (incl. extras): {format_currency(total_cost_with_extras)}")
-st.write(f"Final Price (incl. margin): {format_currency(final_price_idr)}")
-st.write(f"Gross Margin: **{gross_margin_percent:.2f}%**")
+st.markdown(f"""
+- **Total Jam Kerja:** {total_hours:,.2f} jam  
+- **Total Biaya Kerja + Akomodasi:** Rp {total_biaya_kerja:,.0f}  
+- **Harga Jual dengan Markup {margin_percent:.1f}%:** Rp {harga_final:,.0f}  
+- **Gross Margin (Biaya Kerja):** {gross_margin:.2f}%  
 
-# Fungsi export Excel
+---  
+**Breakdown Proyek (CIS Style):**  
+- Subtotal Biaya Langsung: Rp {subtotal:,.0f}  
+- Contingency ({contingency_percent}%): Rp {contingency:,.0f}  
+- Total Estimasi Biaya: Rp {total_estimate_cost:,.0f}  
+- Gross Profit: Rp {gross_profit:,.0f}  
+- Markup: {markup_contract:.1f}%  
+- Gross Margin: {gross_margin_contract:.1f}%  
+""")
+
+# Fungsi export
 def generate_excel():
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    df = pd.DataFrame({
+        "Deskripsi": [
+            "Total Jam Kerja", "Biaya Kerja (IDR)", "Akomodasi", "Harga Final (Jual)",
+            "Gross Margin Kerja", "", "Subtotal Proyek", "Contingency", "Total Estimate Cost",
+            "Contract Value", "Gross Profit", "Markup (%)", "Gross Margin (%)"
+        ],
+        "Nilai": [
+            total_hours, total_cost_idr, akomodasi_total, harga_final,
+            gross_margin, "", subtotal, contingency, total_estimate_cost,
+            contract_value, gross_profit, markup_contract, gross_margin_contract
+        ]
+    })
+    df.to_excel(writer, index=False, sheet_name="Kalkulasi")
+
     workbook = writer.book
-    worksheet = workbook.add_worksheet('Perhitungan')
-    writer.sheets['Perhitungan'] = worksheet
-
-    worksheet.write('A1', 'Deskripsi')
-    worksheet.write('B1', 'Nilai')
-
-    worksheet.write('A2', 'Total Hari Kerja')
-    worksheet.write('B2', total_days)
-    worksheet.write('A3', 'Jam Kerja per Hari')
-    worksheet.write('B3', hours_per_day)
-    worksheet.write_formula('B4', '=B2*B3')
-    worksheet.write('A4', 'Total Jam Kerja')
-    worksheet.write('A5', 'Biaya per Jam (USD)')
-    worksheet.write('B5', cost_per_hour)
-    worksheet.write_formula('B6', '=B4*B5')
-    worksheet.write('A6', 'Total Biaya Kerja (USD)')
-    worksheet.write('A7', 'Kurs ke IDR')
-    worksheet.write('B7', kurs_usd_to_idr)
-    worksheet.write_formula('B8', '=B6*B7')
-    worksheet.write('A8', 'Total Biaya Kerja (IDR)')
-    worksheet.write('A9', 'Tiket Pesawat (IDR)')
-    worksheet.write('B9', flight_cost)
-    worksheet.write('A10', 'Hotel (IDR)')
-    worksheet.write('B10', hotel_cost)
-    worksheet.write('A11', 'Meal (IDR)')
-    worksheet.write('B11', meal_cost)
-    worksheet.write_formula('B12', '=B8+B9+B10+B11')
-    worksheet.write('A12', 'Total Biaya (IDR)')
-    worksheet.write('A13', 'Margin (%)')
-    worksheet.write('B13', margin_percent / 100)
-    worksheet.write_formula('B14', '=B12*(1+B13)')
-    worksheet.write('A14', 'Final Price (IDR)')
-    worksheet.write_formula('B15', '=(B14-B12)/B14')
-    worksheet.write('A15', 'Gross Margin (%)')
-
-    # Formatting
-    rupiah_fmt = workbook.add_format({'num_format': '#,##0'})
-    percent_fmt = workbook.add_format({'num_format': '0.00%'})
+    worksheet = writer.sheets["Kalkulasi"]
     worksheet.set_column('A:A', 30)
-    worksheet.set_column('B:B', 20, rupiah_fmt)
-    worksheet.set_row(14, None, percent_fmt)
-    worksheet.set_row(15, None, percent_fmt)
-
-    writer.save()
+    worksheet.set_column('B:B', 20, workbook.add_format({'num_format': '#,##0'}))
+    writer.close()
     output.seek(0)
     return output
 
-# Tombol export
-st.markdown("---")
-st.subheader("📄 Export ke Excel")
+st.subheader("⬇️ Export Excel")
 st.download_button(
-    label="📄 Download Excel",
+    label="Download Excel",
     data=generate_excel().getvalue(),
-    file_name="kalkulasi_biaya.xlsx",
+    file_name="kalkulator_proyek.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
