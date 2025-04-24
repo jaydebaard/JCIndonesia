@@ -1,3 +1,6 @@
+from io import BytesIO
+import pandas as pd
+
 def generate_excel():
     df = pd.DataFrame({
         "Deskripsi": [
@@ -37,5 +40,6 @@ def generate_excel():
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         df.to_excel(writer, index=False, sheet_name='Perhitungan')
-    output.seek(0)
-    return output
+
+    output.seek(0)  # <-- PENTING, reset posisi ke awal
+    return output.getvalue()
