@@ -101,7 +101,7 @@ def generate_excel():
     worksheet.set_row(14, None, percent_fmt)
     worksheet.set_row(15, None, percent_fmt)
 
-    writer.close()
+    writer.save()
     output.seek(0)
     return output
 
