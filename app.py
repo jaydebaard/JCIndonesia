@@ -2,70 +2,47 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-st.set_page_config(page_title="Kalkulator Biaya Proyek", layout="centered")
+st.set_page_config(page_title="Kalkulator Biaya Kunjungan", layout="centered")
 
-st.title("🧮 Kalkulator Total Biaya Proyek + Akomodasi")
+st.title("🧮 Kalkulator Biaya & Margin Kunjungan Teknisi")
 
-# Input user dasar
-total_days = st.number_input("Total Hari Kerja", min_value=0.0, value=10.0)
-cost_per_hour = st.number_input("Biaya per Jam (USD)", min_value=0.0, value=16.69)
-hours_per_day = st.number_input("Jam Kerja per Hari", min_value=0.0, value=8.0)
+# Input dasar
 kurs_usd_to_idr = st.number_input("Kurs USD ke IDR", min_value=0.0, value=16000.0)
-currency = st.radio("Tampilkan Mata Uang", ["IDR (Rupiah)", "USD (Dollar)"]) 
+no_asd = st.number_input("Jumlah Kunjungan ASD", min_value=0, value=2)
+no_pm = st.number_input("Jumlah Kunjungan PM", min_value=0, value=2)
+no_ec = st.number_input("Jumlah EC", min_value=0, value=1)
+no_chiller = st.number_input("Jumlah Chiller", min_value=1, value=2)
+hours_per_day = st.slider("Jam kerja per hari", min_value=6, max_value=8, value=8)
+no_technician = st.number_input("Jumlah Teknisi", min_value=1, value=2)
+unit_cost_usd = st.number_input("Biaya Teknisi per Jam (USD)", min_value=0.0, value=16.6)
+ec_unit_cost_usd = 132.8
 
-# Optional: Biaya akomodasi
-include_accommodation = st.checkbox("Include Akomodasi?")
-if include_accommodation:
-    flight_cost = st.number_input("Biaya Tiket Pesawat (IDR)", min_value=0.0, value=1600000.0)
-    round_trip = st.checkbox("Round Trip?", value=True)
-    if round_trip:
-        flight_cost *= 2
-    hotel_cost_per_night = st.number_input("Harga Hotel per Malam (IDR)", min_value=0.0, value=700000.0)
-    stay_nights = st.number_input("Jumlah Malam Menginap", min_value=0, value=int(total_days))
-    hotel_cost = hotel_cost_per_night * stay_nights
-    meal_cost = st.number_input("Biaya Makan (Total, IDR)", min_value=0.0, value=1000000.0)
-else:
-    flight_cost = hotel_cost = meal_cost = 0.0
-
-margin_percent = st.number_input("Margin (%)", min_value=0.0, value=20.0)
-
-# Kalkulasi
-total_hours = total_days * hours_per_day
-total_cost_usd = total_hours * cost_per_hour
+# Perhitungan kunjungan dan jam kerja
+total_visits = (no_asd + no_pm) * no_chiller / 2  # 1 teknisi bisa handle 2 chiller
+visit_days = total_visits  # diasumsikan 1 visit = 1 hari
+total_hours = no_technician * visit_days * hours_per_day
+total_cost_usd = total_hours * unit_cost_usd + (no_ec * ec_unit_cost_usd)
 total_cost_idr = total_cost_usd * kurs_usd_to_idr
-total_cost_with_extras = total_cost_idr + flight_cost + hotel_cost + meal_cost
-final_price_idr = total_cost_with_extras * (1 + margin_percent / 100)
-gross_margin_percent = ((final_price_idr - total_cost_with_extras) / final_price_idr * 100) if final_price_idr else 0
 
-# Tambahan: Harga unit tetap
-tetap_unit_price = 2560000
-gross_margin_unit_fixed = ((tetap_unit_price - total_cost_with_extras) / tetap_unit_price * 100) if tetap_unit_price else 0
+# Harga unit & total price
+customer_type = st.radio("Jenis Customer", ["Private", "Government"])
+unit_price_idr = 2560000 if customer_type == "Private" else 1800000
+ec_price_idr = 8000000
+total_price_idr = (total_hours * unit_price_idr) + (no_ec * ec_price_idr)
 
-def format_currency(val):
-    if currency == "USD (Dollar)":
-        return f"${val / kurs_usd_to_idr:,.2f}"
-    return f"Rp {val:,.0f}"
+# Margin
+margin_percent = ((total_price_idr - total_cost_idr) / total_cost_idr * 100) if total_cost_idr else 0
 
-# Output hasil
-st.subheader("💰 Hasil Perhitungan")
-st.write(f"Total Jam Kerja: **{total_hours:,.2f} jam**")
-st.write(f"Total Biaya Kerja: {format_currency(total_cost_idr)}")
-if include_accommodation:
-    st.write(f"Total Biaya Tiket: {format_currency(flight_cost)}")
-    st.write(f"Total Biaya Hotel: {format_currency(hotel_cost)}")
-    st.write(f"Total Biaya Makan: {format_currency(meal_cost)}")
-st.write(f"Total Biaya (incl. extras): {format_currency(total_cost_with_extras)}")
-st.write(f"Final Price (incl. margin): {format_currency(final_price_idr)}")
-st.write(f"Gross Margin: **{gross_margin_percent:.2f}%**")
+# Output
+st.subheader("📊 Hasil Perhitungan")
+st.write(f"Total Kunjungan: **{total_visits:.2f} kali**")
+st.write(f"Total Jam Kerja: **{total_hours:.2f} jam**")
+st.write(f"Total Biaya (USD): **${total_cost_usd:,.2f}**")
+st.write(f"Total Biaya (IDR): **Rp {total_cost_idr:,.0f}**")
+st.write(f"Total Harga Jual (IDR): **Rp {total_price_idr:,.0f}**")
+st.write(f"Margin Kotor: **{margin_percent:.2f}%**")
 
-# Output tambahan: Harga unit tetap
-st.markdown("### 📦 Harga Jual Tetap (Rp 2.560.000)")
-st.write(f"Cost Price: {format_currency(total_cost_with_extras)}")
-st.write(f"Unit Price (Tetap): Rp {tetap_unit_price:,.0f}")
-st.write(f"Gross Margin terhadap Unit Price: **{gross_margin_unit_fixed:.2f}%**")
-
-# Export Excel
-
+# Export ke Excel
 def generate_excel():
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
@@ -76,46 +53,45 @@ def generate_excel():
     worksheet.write('A1', 'Deskripsi')
     worksheet.write('B1', 'Nilai')
 
-    worksheet.write('A2', 'Total Hari Kerja')
-    worksheet.write('B2', total_days)
-    worksheet.write('A3', 'Jam Kerja per Hari')
-    worksheet.write('B3', hours_per_day)
-    worksheet.write_formula('B4', '=B2*B3')
-    worksheet.write('A4', 'Total Jam Kerja')
-    worksheet.write('A5', 'Biaya per Jam (USD)')
-    worksheet.write('B5', cost_per_hour)
-    worksheet.write_formula('B6', '=B4*B5')
-    worksheet.write('A6', 'Total Biaya Kerja (USD)')
-    worksheet.write('A7', 'Kurs ke IDR')
-    worksheet.write('B7', kurs_usd_to_idr)
-    worksheet.write_formula('B8', '=B6*B7')
-    worksheet.write('A8', 'Total Biaya Kerja (IDR)')
-    worksheet.write('A9', 'Tiket Pesawat (IDR)')
-    worksheet.write('B9', flight_cost)
-    worksheet.write('A10', 'Hotel (IDR)')
-    worksheet.write('B10', hotel_cost)
-    worksheet.write('A11', 'Meal (IDR)')
-    worksheet.write('B11', meal_cost)
-    worksheet.write_formula('B12', '=B8+B9+B10+B11')
-    worksheet.write('A12', 'Total Biaya (IDR)')
-    worksheet.write('A13', 'Margin (%)')
-    worksheet.write('B13', margin_percent / 100)
-    worksheet.write_formula('B14', '=B12*(1+B13)')
-    worksheet.write('A14', 'Final Price (IDR)')
-    worksheet.write_formula('B15', '=(B14-B12)/B14')
-    worksheet.write('A15', 'Gross Margin (%)')
-    worksheet.write('A16', 'Harga Jual Tetap')
-    worksheet.write('B16', tetap_unit_price)
-    worksheet.write_formula('B17', '=(B16-B12)/B16')
-    worksheet.write('A17', 'Gross Margin (Unit Tetap)')
+    worksheet.write('A2', 'Jumlah ASD')
+    worksheet.write('B2', no_asd)
+    worksheet.write('A3', 'Jumlah PM')
+    worksheet.write('B3', no_pm)
+    worksheet.write('A4', 'Jumlah EC')
+    worksheet.write('B4', no_ec)
+    worksheet.write('A5', 'Jumlah Chiller')
+    worksheet.write('B5', no_chiller)
+    worksheet.write('A6', 'Jam per Hari')
+    worksheet.write('B6', hours_per_day)
+    worksheet.write('A7', 'Jumlah Teknisi')
+    worksheet.write('B7', no_technician)
+    worksheet.write('A8', 'Total Kunjungan')
+    worksheet.write('B8', total_visits)
+    worksheet.write('A9', 'Total Jam')
+    worksheet.write('B9', total_hours)
+    worksheet.write('A10', 'Biaya Teknisi/jam (USD)')
+    worksheet.write('B10', unit_cost_usd)
+    worksheet.write('A11', 'Biaya EC/unit (USD)')
+    worksheet.write('B11', ec_unit_cost_usd)
+    worksheet.write('A12', 'Total Cost (USD)')
+    worksheet.write('B12', total_cost_usd)
+    worksheet.write('A13', 'Kurs USD ke IDR')
+    worksheet.write('B13', kurs_usd_to_idr)
+    worksheet.write('A14', 'Total Cost (IDR)')
+    worksheet.write('B14', total_cost_idr)
+    worksheet.write('A15', 'Unit Price (IDR)')
+    worksheet.write('B15', unit_price_idr)
+    worksheet.write('A16', 'EC Price (IDR)')
+    worksheet.write('B16', ec_price_idr)
+    worksheet.write('A17', 'Total Price (IDR)')
+    worksheet.write('B17', total_price_idr)
+    worksheet.write('A18', 'Gross Margin (%)')
+    worksheet.write('B18', margin_percent)
 
     rupiah_fmt = workbook.add_format({'num_format': '#,##0'})
     percent_fmt = workbook.add_format({'num_format': '0.00%'})
-    worksheet.set_column('A:A', 35)
+    worksheet.set_column('A:A', 30)
     worksheet.set_column('B:B', 20, rupiah_fmt)
-    worksheet.set_row(14, None, percent_fmt)
-    worksheet.set_row(15, None, percent_fmt)
-    worksheet.set_row(16, None, rupiah_fmt)
     worksheet.set_row(17, None, percent_fmt)
 
     writer.close()
@@ -127,6 +103,6 @@ st.subheader("📄 Export ke Excel")
 st.download_button(
     label="📄 Download Excel",
     data=generate_excel().getvalue(),
-    file_name="kalkulasi_biaya.xlsx",
+    file_name="kalkulasi_kunjungan.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
