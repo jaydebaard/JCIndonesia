@@ -3,6 +3,7 @@ import pandas as pd
 from io import BytesIO
 
 st.set_page_config(page_title="Kalkulator Biaya Proyek", layout="centered")
+
 st.title("🧮 Kalkulator Total Biaya Proyek + Akomodasi")
 
 # Input user dasar
@@ -10,9 +11,9 @@ total_days = st.number_input("Total Hari Kerja", min_value=0.0, value=10.0)
 cost_per_hour = st.number_input("Biaya per Jam (USD)", min_value=0.0, value=16.69)
 hours_per_day = st.number_input("Jam Kerja per Hari", min_value=0.0, value=8.0)
 kurs_usd_to_idr = st.number_input("Kurs USD ke IDR", min_value=0.0, value=16000.0)
-currency = st.radio("Tampilkan Mata Uang", ["IDR (Rupiah)", "USD (Dollar)"])
+currency = st.radio("Tampilkan Mata Uang", ["IDR (Rupiah)", "USD (Dollar)"]) 
 
-# Biaya tambahan (akomodasi)
+# Optional: Biaya akomodasi
 include_accommodation = st.checkbox("Include Akomodasi?")
 if include_accommodation:
     flight_cost = st.number_input("Biaya Tiket Pesawat (IDR)", min_value=0.0, value=1600000.0)
@@ -36,6 +37,10 @@ total_cost_with_extras = total_cost_idr + flight_cost + hotel_cost + meal_cost
 final_price_idr = total_cost_with_extras * (1 + margin_percent / 100)
 gross_margin_percent = ((final_price_idr - total_cost_with_extras) / final_price_idr * 100) if final_price_idr else 0
 
+# Tambahan: Harga unit tetap
+tetap_unit_price = 2560000
+gross_margin_unit_fixed = ((tetap_unit_price - total_cost_with_extras) / tetap_unit_price * 100) if tetap_unit_price else 0
+
 def format_currency(val):
     if currency == "USD (Dollar)":
         return f"${val / kurs_usd_to_idr:,.2f}"
@@ -53,7 +58,14 @@ st.write(f"Total Biaya (incl. extras): {format_currency(total_cost_with_extras)}
 st.write(f"Final Price (incl. margin): {format_currency(final_price_idr)}")
 st.write(f"Gross Margin: **{gross_margin_percent:.2f}%**")
 
-# Fungsi export Excel
+# Output tambahan: Harga unit tetap
+st.markdown("### 📦 Harga Jual Tetap (Rp 2.560.000)")
+st.write(f"Cost Price: {format_currency(total_cost_with_extras)}")
+st.write(f"Unit Price (Tetap): Rp {tetap_unit_price:,.0f}")
+st.write(f"Gross Margin terhadap Unit Price: **{gross_margin_unit_fixed:.2f}%**")
+
+# Export Excel
+
 def generate_excel():
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
@@ -92,20 +104,24 @@ def generate_excel():
     worksheet.write('A14', 'Final Price (IDR)')
     worksheet.write_formula('B15', '=(B14-B12)/B14')
     worksheet.write('A15', 'Gross Margin (%)')
+    worksheet.write('A16', 'Harga Jual Tetap')
+    worksheet.write('B16', tetap_unit_price)
+    worksheet.write_formula('B17', '=(B16-B12)/B16')
+    worksheet.write('A17', 'Gross Margin (Unit Tetap)')
 
-    # Formatting
     rupiah_fmt = workbook.add_format({'num_format': '#,##0'})
     percent_fmt = workbook.add_format({'num_format': '0.00%'})
-    worksheet.set_column('A:A', 30)
+    worksheet.set_column('A:A', 35)
     worksheet.set_column('B:B', 20, rupiah_fmt)
     worksheet.set_row(14, None, percent_fmt)
     worksheet.set_row(15, None, percent_fmt)
+    worksheet.set_row(16, None, rupiah_fmt)
+    worksheet.set_row(17, None, percent_fmt)
 
     writer.close()
     output.seek(0)
     return output
 
-# Tombol export
 st.markdown("---")
 st.subheader("📄 Export ke Excel")
 st.download_button(
