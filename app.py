@@ -59,7 +59,6 @@ st.write(f"Gross Margin: **{gross_margin_percent:.2f}%**")
 
 def generate_excel():
     output = BytesIO()
-    workbook = None
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
     workbook = writer.book
     worksheet = workbook.add_worksheet('Perhitungan')
