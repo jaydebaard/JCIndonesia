@@ -44,7 +44,7 @@ def format_currency(val):
     return f"Rp {val:,.0f}"
 
 # Output hasil
-st.subheader("\ud83d\udcb0 Hasil Perhitungan")
+st.subheader("💰 Hasil Perhitungan")
 st.write(f"Total Jam Kerja: **{total_hours:,.2f} jam**")
 st.write(f"Total Biaya Kerja: {format_currency(total_cost_idr)}")
 if include_accommodation:
@@ -59,58 +59,60 @@ st.write(f"Gross Margin: **{gross_margin_percent:.2f}%**")
 
 def generate_excel():
     output = BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        workbook = writer.book
-        worksheet = workbook.add_worksheet('Perhitungan')
-        writer.sheets['Perhitungan'] = worksheet
+    workbook = None
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    workbook = writer.book
+    worksheet = workbook.add_worksheet('Perhitungan')
+    writer.sheets['Perhitungan'] = worksheet
 
-        worksheet.write('A1', 'Deskripsi')
-        worksheet.write('B1', 'Nilai')
+    worksheet.write('A1', 'Deskripsi')
+    worksheet.write('B1', 'Nilai')
 
-        worksheet.write('A2', 'Total Hari Kerja')
-        worksheet.write('B2', total_days)
-        worksheet.write('A3', 'Jam Kerja per Hari')
-        worksheet.write('B3', hours_per_day)
-        worksheet.write_formula('B4', '=B2*B3')
-        worksheet.write('A4', 'Total Jam Kerja')
-        worksheet.write('A5', 'Biaya per Jam (USD)')
-        worksheet.write('B5', cost_per_hour)
-        worksheet.write_formula('B6', '=B4*B5')
-        worksheet.write('A6', 'Total Biaya Kerja (USD)')
-        worksheet.write('A7', 'Kurs ke IDR')
-        worksheet.write('B7', kurs_usd_to_idr)
-        worksheet.write_formula('B8', '=B6*B7')
-        worksheet.write('A8', 'Total Biaya Kerja (IDR)')
-        worksheet.write('A9', 'Tiket Pesawat (IDR)')
-        worksheet.write('B9', flight_cost)
-        worksheet.write('A10', 'Hotel (IDR)')
-        worksheet.write('B10', hotel_cost)
-        worksheet.write('A11', 'Meal (IDR)')
-        worksheet.write('B11', meal_cost)
-        worksheet.write_formula('B12', '=B8+B9+B10+B11')
-        worksheet.write('A12', 'Total Biaya (IDR)')
-        worksheet.write('A13', 'Margin (%)')
-        worksheet.write('B13', margin_percent / 100)
-        worksheet.write_formula('B14', '=B12*(1+B13)')
-        worksheet.write('A14', 'Final Price (IDR)')
-        worksheet.write_formula('B15', '=(B14-B12)/B14')
-        worksheet.write('A15', 'Gross Margin (%)')
+    worksheet.write('A2', 'Total Hari Kerja')
+    worksheet.write('B2', total_days)
+    worksheet.write('A3', 'Jam Kerja per Hari')
+    worksheet.write('B3', hours_per_day)
+    worksheet.write_formula('B4', '=B2*B3')
+    worksheet.write('A4', 'Total Jam Kerja')
+    worksheet.write('A5', 'Biaya per Jam (USD)')
+    worksheet.write('B5', cost_per_hour)
+    worksheet.write_formula('B6', '=B4*B5')
+    worksheet.write('A6', 'Total Biaya Kerja (USD)')
+    worksheet.write('A7', 'Kurs ke IDR')
+    worksheet.write('B7', kurs_usd_to_idr)
+    worksheet.write_formula('B8', '=B6*B7')
+    worksheet.write('A8', 'Total Biaya Kerja (IDR)')
+    worksheet.write('A9', 'Tiket Pesawat (IDR)')
+    worksheet.write('B9', flight_cost)
+    worksheet.write('A10', 'Hotel (IDR)')
+    worksheet.write('B10', hotel_cost)
+    worksheet.write('A11', 'Meal (IDR)')
+    worksheet.write('B11', meal_cost)
+    worksheet.write_formula('B12', '=B8+B9+B10+B11')
+    worksheet.write('A12', 'Total Biaya (IDR)')
+    worksheet.write('A13', 'Margin (%)')
+    worksheet.write('B13', margin_percent / 100)
+    worksheet.write_formula('B14', '=B12*(1+B13)')
+    worksheet.write('A14', 'Final Price (IDR)')
+    worksheet.write_formula('B15', '=(B14-B12)/B14')
+    worksheet.write('A15', 'Gross Margin (%)')
 
-        rupiah_fmt = workbook.add_format({'num_format': '#,##0'})
-        percent_fmt = workbook.add_format({'num_format': '0.00%'})
-        worksheet.set_column('A:A', 30)
-        worksheet.set_column('B:B', 20, rupiah_fmt)
-        worksheet.set_row(14, None, percent_fmt)
-        worksheet.set_row(15, None, percent_fmt)
+    rupiah_fmt = workbook.add_format({'num_format': '#,##0'})
+    percent_fmt = workbook.add_format({'num_format': '0.00%'})
+    worksheet.set_column('A:A', 30)
+    worksheet.set_column('B:B', 20, rupiah_fmt)
+    worksheet.set_row(14, None, percent_fmt)
+    worksheet.set_row(15, None, percent_fmt)
 
+    writer.close()
     output.seek(0)
     return output
 
 st.markdown("---")
-st.subheader("\ud83d\udcc4 Export ke Excel")
+st.subheader("📄 Export ke Excel")
 st.download_button(
-    label="\ud83d\udcc3 Download Excel",
-    data=generate_excel(),
+    label="📄 Download Excel",
+    data=generate_excel().getvalue(),
     file_name="kalkulasi_biaya.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
