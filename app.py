@@ -11,7 +11,7 @@ no_asd = st.number_input("Jumlah Kunjungan ASD", min_value=0, value=2)
 no_pm = st.number_input("Jumlah Kunjungan PM", min_value=0, value=2)
 no_ec = st.number_input("Jumlah EC", min_value=0, value=1)
 no_chiller = st.number_input("Jumlah Chiller", min_value=1, value=2)
-hours_per_day = st.slider("Jam kerja per hari", min_value=6, max=8, value=8)
+hours_per_day = st.slider("Jam kerja per hari", min_value=6.0, max_value=8.0, value=8.0, step=0.5)
 no_technician = st.number_input("Jumlah Teknisi", min_value=1, value=2)
 unit_cost_usd = st.number_input("Biaya Teknisi per Jam (USD)", min_value=0.0, value=16.6)
 ec_unit_cost_usd = 132.8
