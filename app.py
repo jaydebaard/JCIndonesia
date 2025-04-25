@@ -3,15 +3,13 @@ import pandas as pd
 from io import BytesIO
 
 # Set page config
-st.set_page_config(page_title="Kalkulator Biaya PM, ASD, EC Chiller", layout="centered")
-st.title("🧮 Kalkulator Biaya PM, ASD, dan EC Chiller")
+st.set_page_config(page_title="Kalkulator Biaya PM, ASD, EC Chiller (Rupiah)", layout="centered")
+st.title("🧮 Kalkulator Biaya PM, ASD, dan EC Chiller (Rupiah)")
 
 # ===============================================
-st.header("1. Currency & Cost Setting")
-usd_to_idr = st.number_input("Kurs USD ke IDR", value=16000.0)
-
-technician_unit_cost_per_hour = st.number_input("Biaya per Jam Teknisi ($)", value=16.6)
-ec_unit_cost_per_hour = st.number_input("Biaya per Jam Emergency Call ($)", value=78.125)
+st.header("1. Cost Setting (Rupiah)")
+technician_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Teknisi (Rp)", value=265600.0, step=1000.0)
+ec_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Emergency Call (Rp)", value=1250000.0, step=1000.0)
 
 # ===============================================
 st.header("2. Jumlah Chiller")
@@ -64,21 +62,20 @@ total_hours_pm_asd = (total_pm_days * hours_per_day_pm) + (total_asd_days * hour
 total_hours_ec = (total_ec_days * hours_per_day_ec)
 total_hours = total_hours_pm_asd + total_hours_ec
 
-# Breakdown Cost
-cost_pm = total_pm_days * hours_per_day_pm * technician_unit_cost_per_hour
-cost_asd = total_asd_days * hours_per_day_asd * technician_unit_cost_per_hour
-cost_ec = total_ec_days * hours_per_day_ec * ec_unit_cost_per_hour
+# Breakdown Cost (dalam IDR)
+cost_pm = total_pm_days * hours_per_day_pm * technician_unit_cost_per_hour_idr
+cost_asd = total_asd_days * hours_per_day_asd * technician_unit_cost_per_hour_idr
+cost_ec = total_ec_days * hours_per_day_ec * ec_unit_cost_per_hour_idr
 
 total_cost = cost_pm + cost_asd + cost_ec
 
-# Breakdown Price
+# ===============================================
 st.header("6. Pricing")
-customer_type = st.selectbox("Tipe Customer", options=["Private", "Government"])
-unit_price = 160.0 if customer_type == "Private" else 112.5
-ec_price_per_day = 468.75
+unit_price_idr = st.number_input("Harga Satuan PM/ASD (Rp)", value=2560000.0, step=1000.0)
+ec_price_per_day_idr = st.number_input("Harga Satuan EC per Hari (Rp)", value=7500000.0, step=1000.0)
 
-price_pm_asd = (total_pm_days + total_asd_days) * unit_price
-price_ec = total_ec_days * ec_price_per_day
+price_pm_asd = (total_pm_days + total_asd_days) * unit_price_idr
+price_ec = total_ec_days * ec_price_per_day_idr
 
 total_price = price_pm_asd + price_ec
 
@@ -86,41 +83,33 @@ total_price = price_pm_asd + price_ec
 margin = (total_price - total_cost) / total_price * 100 if total_price != 0 else 0
 
 # Harga Penawaran manual
-offered_price = st.number_input("Harga Penawaran ($)", min_value=0.0, value=float(total_price), step=0.5)
+offered_price_idr = st.number_input("Harga Penawaran (Rp)", min_value=0.0, value=float(total_price), step=1000.0)
 
 # ===============================================
 # OUTPUT
-st.header("📋 Hasil Perhitungan Akhir")
+st.header("📋 Hasil Perhitungan Akhir (Rp)")
 st.write(f"Total PM Days: {total_pm_days:.2f} hari")
 st.write(f"Total ASD Days: {total_asd_days:.2f} hari")
 st.write(f"Total EC Days: {total_ec_days:.2f} hari")
 st.write(f"Total Hours: {total_hours:.2f} jam")
 st.write(f"Total Days: {total_days:.2f} hari")
 st.write("---")
-st.subheader("Breakdown Cost:")
-st.write(f"Cost PM: ${cost_pm:,.2f}")
-st.write(f"Cost ASD: ${cost_asd:,.2f}")
-st.write(f"Cost EC: ${cost_ec:,.2f}")
-st.write(f"Total Cost: ${total_cost:,.2f}")
+st.subheader("Breakdown Cost (Rupiah):")
+st.write(f"Cost PM: Rp {cost_pm:,.0f}")
+st.write(f"Cost ASD: Rp {cost_asd:,.0f}")
+st.write(f"Cost EC: Rp {cost_ec:,.0f}")
+st.write(f"Total Cost: Rp {total_cost:,.0f}")
 st.write("---")
-st.subheader("Breakdown Price:")
-st.write(f"Price PM + ASD: ${price_pm_asd:,.2f}")
-st.write(f"Price EC: ${price_ec:,.2f}")
-st.write(f"Total Price: ${total_price:,.2f}")
+st.subheader("Breakdown Price (Rupiah):")
+st.write(f"Price PM + ASD: Rp {price_pm_asd:,.0f}")
+st.write(f"Price EC: Rp {price_ec:,.0f}")
+st.write(f"Total Price: Rp {total_price:,.0f}")
 st.write("---")
-st.subheader("Margin vs Total Price:")
+st.subheader("Margin dari Total Price:")
 st.write(f"{margin:.2f}%")
 
 st.subheader("Harga Penawaran Manual:")
-st.write(f"Harga Penawaran: ${offered_price:,.2f}")
-
-# ===============================================
-# Optional: tampilkan IDR
-show_idr = st.checkbox("Tampilkan juga dalam IDR?")
-if show_idr:
-    st.write(f"Total Biaya (IDR): Rp {total_cost * usd_to_idr:,.0f}")
-    st.write(f"Total Harga (IDR): Rp {total_price * usd_to_idr:,.0f}")
-    st.write(f"Harga Penawaran (IDR): Rp {offered_price * usd_to_idr:,.0f}")
+st.write(f"Harga Penawaran: Rp {offered_price_idr:,.0f}")
 
 # ===============================================
 # Prepare Data untuk Download Excel
@@ -131,14 +120,14 @@ data = {
         "Total EC Days",
         "Total Hours",
         "Total Days",
-        "Cost PM ($)",
-        "Cost ASD ($)",
-        "Cost EC ($)",
-        "Total Cost ($)",
-        "Price PM+ASD ($)",
-        "Price EC ($)",
-        "Total Price ($)",
-        "Harga Penawaran ($)",
+        "Cost PM (Rp)",
+        "Cost ASD (Rp)",
+        "Cost EC (Rp)",
+        "Total Cost (Rp)",
+        "Price PM+ASD (Rp)",
+        "Price EC (Rp)",
+        "Total Price (Rp)",
+        "Harga Penawaran (Rp)",
         "Margin (%)",
     ],
     "Value": [
@@ -154,7 +143,7 @@ data = {
         price_pm_asd,
         price_ec,
         total_price,
-        offered_price,
+        offered_price_idr,
         margin,
     ],
 }
@@ -170,8 +159,8 @@ def to_excel(df):
     return processed_data
 
 st.download_button(
-    label="📥 Download Hasil Breakdown ke Excel",
+    label="📥 Download Hasil Breakdown ke Excel (Rupiah)",
     data=to_excel(df_result),
-    file_name="kalkulator_biaya_pm_asd_ec_breakdown.xlsx",
+    file_name="kalkulator_biaya_pm_asd_ec_idr.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 )
