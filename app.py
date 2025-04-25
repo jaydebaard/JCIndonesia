@@ -9,7 +9,6 @@ st.title("🧮 Kalkulator Biaya PM, ASD, dan EC Chiller (Rupiah)")
 # ===============================================
 st.header("1. Cost Setting (Rupiah)")
 technician_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Teknisi (Rp)", value=265600.0, step=1000.0, format="%.0f")
-ec_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Emergency Call (Rp)", value=1250000.0, step=1000.0, format="%.0f")
 
 # ===============================================
 st.header("2. Jumlah Chiller")
@@ -63,12 +62,9 @@ total_hours_pm_asd = (total_pm_days * hours_per_day_pm) + (total_asd_days * hour
 total_hours_ec = (total_ec_days * hours_per_day_ec)
 total_hours = total_hours_pm_asd + total_hours_ec
 
-# Breakdown Cost (dalam IDR)
-cost_pm = total_pm_days * hours_per_day_pm * technician_unit_cost_per_hour_idr
-cost_asd = total_asd_days * hours_per_day_asd * technician_unit_cost_per_hour_idr
-cost_ec = total_ec_days * hours_per_day_ec * ec_unit_cost_per_hour_idr
-
-total_cost = cost_pm + cost_asd + cost_ec
+# ===============================================
+# Cost HANYA dari total hours x biaya teknisi
+total_cost = total_hours * technician_unit_cost_per_hour_idr
 
 # ===============================================
 st.header("6. Pricing")
@@ -76,7 +72,7 @@ unit_price_idr = st.number_input("Harga Satuan PM/ASD (Rp)", value=2560000.0, st
 
 price_pm_asd = (total_pm_days + total_asd_days) * unit_price_idr
 
-# Total Price hanya dari PM + ASD saja, EC tidak masuk pricing
+# Total Price hanya dari PM + ASD
 total_price = price_pm_asd
 
 # Margin
@@ -94,11 +90,8 @@ st.write(f"Total EC Days: {total_ec_days:,.1f} hari")
 st.write(f"Total Hours: {total_hours:,.1f} jam")
 st.write(f"Total Days: {total_days:,.1f} hari")
 st.write("---")
-st.subheader("Breakdown Cost (Rupiah):")
-st.write(f"Cost PM: Rp {cost_pm:,.0f}")
-st.write(f"Cost ASD: Rp {cost_asd:,.0f}")
-st.write(f"Cost EC: Rp {cost_ec:,.0f}")
-st.write(f"Total Cost: Rp {total_cost:,.0f}")
+st.subheader("Total Cost (Rupiah):")
+st.write(f"Total Cost (semua jam x biaya teknisi): Rp {total_cost:,.0f}")
 st.write("---")
 st.subheader("Breakdown Price (Rupiah):")
 st.write(f"Price PM + ASD: Rp {price_pm_asd:,.0f}")
@@ -119,9 +112,6 @@ data = {
         "Total EC Days",
         "Total Hours",
         "Total Days",
-        "Cost PM (Rp)",
-        "Cost ASD (Rp)",
-        "Cost EC (Rp)",
         "Total Cost (Rp)",
         "Price PM+ASD (Rp)",
         "Total Price (Rp)",
@@ -134,9 +124,6 @@ data = {
         total_ec_days,
         total_hours,
         total_days,
-        cost_pm,
-        cost_asd,
-        cost_ec,
         total_cost,
         price_pm_asd,
         total_price,
