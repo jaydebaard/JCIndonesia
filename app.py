@@ -127,6 +127,7 @@ data = {
 
 df_summary = pd.DataFrame(data)
 
+
 def to_excel_file(df):
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
