@@ -2,110 +2,158 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-# Title
-st.set_page_config(page_title="Kalkulator Biaya PM, ASD, EC, dan Subkontraktor (Rupiah)", layout="centered")
+# Set page config
+st.set_page_config(page_title="Kalkulator Biaya PM, ASD, EC + Subcontractor (Rupiah)", layout="centered")
 st.title("🧮 Kalkulator Biaya PM, ASD, EC, dan Subkontraktor (Rupiah)")
 
-# Section: Cost Setting
-st.header("1. Biaya Teknisi")
-tech_rate = st.number_input("Biaya per Jam Teknisi (Rp)", value=267040.0, step=1000.0, format="%.0f")
+# ===============================================
+st.header("1. Cost Setting (Rupiah)")
+technician_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Teknisi (Rp)", value=265600.0, step=1000.0, format="%.0f")
 
-# Section: Estimasi Jam Kerja Teknisi
-st.header("2. Estimasi Jam Kerja Teknisi")
-total_hours = st.number_input("Total Jam Kerja Teknisi", value=147.0, step=0.5, format="%.1f")
-total_cost_technician = total_hours * tech_rate
+# ===============================================
+st.header("2. Jumlah Chiller")
+col1, col2 = st.columns(2)
+with col1:
+    no_air_cooled = st.number_input("Jumlah Air Cooled Chiller", min_value=0, step=1, format="%d")
+with col2:
+    no_water_cooled = st.number_input("Jumlah Water Cooled Chiller", min_value=0, step=1, format="%d")
 
-# Section: Harga Penawaran
-st.header("3. Harga yang Ditawarkan")
+# ===============================================
+st.header("3. Preventive Maintenance (PM)")
+hours_per_day_pm = st.number_input("Jam kerja per hari untuk PM", value=8.0, step=0.5, format="%.1f")
+manpower_pm = st.number_input("Jumlah Teknisi untuk PM", min_value=1, step=1, format="%d")
+pm_visits = st.number_input("Jumlah Kunjungan PM", min_value=0, step=1, format="%d")
+
+# Hitung otomatis Total Hari PM
+base_pm_days = (no_air_cooled * 1) + (no_water_cooled / 2)
+auto_total_pm_days = base_pm_days * pm_visits * manpower_pm
+
+# Input Total Hari PM (editable manual)
+total_pm_days = st.number_input(
+    "Total Hari PM (hasil hitung otomatis dari chiller × visit × manpower, bisa diedit manual)",
+    min_value=0.0,
+    value=float(auto_total_pm_days),
+    step=0.5,
+    format="%.1f"
+)
+
+st.success(f"Total Hari PM: {total_pm_days:,.1f} hari")
+
+# ===============================================
+st.header("4. Annual Shutdown (ASD)")
+asd_visits = st.number_input("Jumlah Kunjungan ASD", min_value=0, step=1, format="%d")
+
+default_days_per_visit_asd = asd_visits if asd_visits > 0 else 0.0
+days_per_visit_asd = st.number_input("Jumlah Hari per Kunjungan ASD", min_value=0.0, value=float(default_days_per_visit_asd), step=0.5, format="%.1f")
+
+hours_per_day_asd = st.number_input("Jam kerja per hari untuk ASD", value=8.0, step=0.5, format="%.1f")
+total_asd_days = asd_visits * days_per_visit_asd
+
+# ===============================================
+st.header("5. Emergency Call (EC)")
+ec_visits = st.number_input("Jumlah Kunjungan EC", min_value=0, step=1, format="%d")
+hours_per_day_ec = st.number_input("Jam kerja per hari untuk EC", value=6.0, step=0.5, format="%.1f")
+total_ec_days = ec_visits * 1
+
+# ===============================================
+# Perhitungan Total Days & Total Hours
+total_days = total_pm_days + total_asd_days + total_ec_days
+total_hours_pm_asd = (total_pm_days * hours_per_day_pm) + (total_asd_days * hours_per_day_asd)
+total_hours_ec = (total_ec_days * hours_per_day_ec)
+total_hours = total_hours_pm_asd + total_hours_ec
+
+# ===============================================
+# Cost Teknisi
+total_cost_technician = total_hours * technician_unit_cost_per_hour_idr
+
+# ===============================================
+st.header("6. Harga Yang Ditawarkan")
 offered_price_idr = st.number_input("Harga yang Ditawarkan (Rp)", min_value=0.0, step=1000.0, format="%.0f")
+
+# Margin dari harga yang ditawarkan
 margin = (offered_price_idr - total_cost_technician) / offered_price_idr * 100 if offered_price_idr != 0 else 0
 
-# Display Summary Harga vs Cost Teknisi
+# ===============================================
+# OUTPUT Price vs Cost
+st.header("📋 Hasil Perhitungan Akhir (Rupiah)")
+st.write(f"Total PM Days: {total_pm_days:,.1f} hari")
+st.write(f"Total ASD Days: {total_asd_days:,.1f} hari")
+st.write(f"Total EC Days: {total_ec_days:,.1f} hari")
+st.write(f"Total Hours: {total_hours:,.1f} jam")
+st.write(f"Total Days: {total_days:,.1f} hari")
+
+st.write("---")
+
 st.subheader("💵 Price vs Cost (Teknisi)")
-st.write(f"Harga Ditawarkan: **Rp {offered_price_idr:,.0f}**")
-st.write(f"Total Cost Teknisi: **Rp {total_cost_technician:,.0f}**")
-st.caption(f"Perhitungan: {total_hours:,.1f} jam x Rp {tech_rate:,.0f} per jam = Rp {total_cost_technician:,.0f}")
+st.write(f"**Harga yang Ditawarkan (Price): Rp {offered_price_idr:,.0f}**")
+st.write(f"**Total Cost Teknisi: Rp {total_cost_technician:,.0f}**")
+st.caption(f"Perhitungan: {total_hours:,.1f} jam x Rp {technician_unit_cost_per_hour_idr:,.0f} per jam = Rp {total_cost_technician:,.0f}")
+
 if margin < 40:
     st.error(f"⚠️ Margin: {margin:.2f}% (Kurang dari 40%)")
 else:
     st.success(f"✅ Margin: {margin:.2f}%")
 
-# Section: Subcontractor Work
-st.header("4. Subcontractor Works")
+# ===============================================
+# Bagian Baru - Subcontractor Work
+st.header("7. Subcontractor Works")
 
-# Subcontractor categories with default rates
-default_rates = {
-    "Helper": 97222.0,
-    "Condenser Cleaning": 500000.0,
-    "Other": 0.0
-}
+subcon_categories = ["Helper", "Condenser Cleaning", "Other"]
+selected_category = st.selectbox("Pilih Kategori Subcontractor", subcon_categories)
 
-subcon_data = []
-num_subcons = st.number_input("Berapa banyak jenis pekerjaan Subkontraktor?", min_value=1, max_value=10, value=2, step=1)
+subcon_days = st.number_input(f"Jumlah Hari untuk {selected_category}", min_value=0.0, step=0.5, format="%.1f")
+subcon_hours_per_day = st.number_input(f"Jam kerja per Hari untuk {selected_category}", min_value=0.0, step=0.5, format="%.1f")
+subcon_cost_per_hour = st.number_input(f"Biaya per Jam untuk {selected_category} (Rp)", min_value=0.0, step=1000.0, format="%.0f")
 
-for i in range(num_subcons):
-    st.markdown(f"### Subcontractor #{i+1}")
-    category = st.selectbox(f"Pilih Kategori Pekerjaan Subkontraktor #{i+1}", ["Helper", "Condenser Cleaning", "Other"], key=f"category_{i}")
+# Hitung cost subcon
+subcon_total_hours = subcon_days * subcon_hours_per_day
+subcon_total_cost = subcon_total_hours * subcon_cost_per_hour
 
-    default_rate = default_rates.get(category, 0.0)
+st.success(f"Total Subcontractor Cost untuk {selected_category}: Rp {subcon_total_cost:,.0f}")
+st.caption(f"Perhitungan: {subcon_total_hours:,.1f} jam x Rp {subcon_cost_per_hour:,.0f} per jam = Rp {subcon_total_cost:,.0f}")
 
-    days = st.number_input(f"Jumlah Hari - {category}", min_value=0.0, step=0.5, key=f"days_{i}", format="%.1f")
-    hours_per_day = st.number_input(f"Jam/Hari - {category}", min_value=0.0, step=0.5, key=f"hours_{i}", format="%.1f")
-    rate = st.number_input(f"Biaya per Jam - {category} (Rp)", min_value=0.0, value=default_rate, step=1000.0, key=f"rate_{i}", format="%.0f")
+# ===============================================
+# Download Data (Optional bisa tambahkan nanti kalau mau multi subcon)
 
-    total_hours_subcon = days * hours_per_day
-    total_cost_subcon = total_hours_subcon * rate
-
-    st.success(f"Total Cost {category}: Rp {total_cost_subcon:,.0f}")
-    st.caption(f"{total_hours_subcon:,.1f} jam x Rp {rate:,.0f} = Rp {total_cost_subcon:,.0f}")
-
-    subcon_data.append({
-        "Kategori": category,
-        "Hari": days,
-        "Jam per Hari": hours_per_day,
-        "Jam Total": total_hours_subcon,
-        "Rate per Jam (Rp)": rate,
-        "Total Cost (Rp)": total_cost_subcon
-    })
-
-# Total Cost Semua Subkontraktor
-total_cost_all_subcon = sum(item["Total Cost (Rp)"] for item in subcon_data)
-st.subheader("🧾 Total Biaya Semua Subkontraktor")
-st.write(f"**Rp {total_cost_all_subcon:,.0f}**")
-
-# Section: Download to Excel
-summary_data = {
+# Prepare Data untuk Download Excel
+data = {
     "Item": [
-        "Total Jam Teknisi",
-        "Biaya per Jam Teknisi (Rp)",
+        "Total PM Days",
+        "Total ASD Days",
+        "Total EC Days",
+        "Total Hours",
+        "Total Days",
         "Total Cost Teknisi (Rp)",
         "Harga Ditawarkan (Rp)",
         "Margin (%)",
-        "Total Cost Subkontraktor (Rp)"
+        f"Total Cost Subcontractor ({selected_category}) (Rp)",
     ],
     "Value": [
+        total_pm_days,
+        total_asd_days,
+        total_ec_days,
         total_hours,
-        tech_rate,
+        total_days,
         total_cost_technician,
         offered_price_idr,
         margin,
-        total_cost_all_subcon
-    ]
+        subcon_total_cost,
+    ],
 }
-df_summary = pd.DataFrame(summary_data)
 
-df_subcon = pd.DataFrame(subcon_data)
+df_result = pd.DataFrame(data)
 
-def to_excel_file(df1, df2):
+# Function download Excel
+def to_excel(df):
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df1.to_excel(writer, index=False, sheet_name='Summary')
-        df2.to_excel(writer, index=False, sheet_name='Subcontractors')
-    return output.getvalue()
+        df.to_excel(writer, index=False, sheet_name='Summary')
+    processed_data = output.getvalue()
+    return processed_data
 
 st.download_button(
-    label="📥 Download Excel (Summary + Subcontractor)",
-    data=to_excel_file(df_summary, df_subcon),
-    file_name="biaya_subkontraktor_dan_teknisi.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    label="📥 Download Hasil Breakdown ke Excel (Rupiah)",
+    data=to_excel(df_result),
+    file_name="kalkulator_biaya_pm_asd_ec_subcon_idr.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 )
