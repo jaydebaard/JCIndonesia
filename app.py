@@ -21,15 +21,17 @@ with col2:
 
 st.header("3. Preventive Maintenance (PM)")
 hours_per_day_pm = st.number_input("Jam kerja per hari untuk PM", value=8.0)
-pm_visits = st.number_input("Jumlah Kunjungan PM (times)", min_value=0, step=1)
-days_per_visit_pm = st.number_input("Jumlah Hari per Kunjungan PM (bilangan bulat)", min_value=1, step=1, format="%d")
 manpower_pm = st.number_input("Jumlah Teknisi untuk PM", min_value=1, step=1)
 
-total_pm_days = pm_visits * days_per_visit_pm * manpower_pm
+# --- Update Total PM Days berdasarkan Jumlah Chiller
+total_pm_base_days = (no_air_cooled * 1) + (no_water_cooled / 2)  # 1 hari = 1 air cooled, 1 hari = 2 water cooled
+total_pm_days = total_pm_base_days * manpower_pm
+
+st.write(f"Total Hari PM berdasarkan chiller dan manpower: {total_pm_days:.2f} hari")
 
 st.header("4. Annual Shutdown (ASD)")
 asd_visits = st.number_input("Jumlah Kunjungan ASD (times)", min_value=0, step=1)
-days_per_visit_asd = st.number_input("Jumlah Hari per Kunjungan ASD (hari, bilangan bulat)", min_value=1, step=1, format="%d")
+days_per_visit_asd = st.number_input("Jumlah Hari per Kunjungan ASD (bilangan bulat)", min_value=1, step=1, format="%d")
 hours_per_day_asd = st.number_input("Jam kerja per hari untuk ASD", value=8.0)
 total_asd_days = asd_visits * days_per_visit_asd
 
