@@ -15,15 +15,15 @@ ec_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Emergency Call (Rp)",
 st.header("2. Jumlah Chiller")
 col1, col2 = st.columns(2)
 with col1:
-    no_air_cooled = st.number_input("Jumlah Air Cooled Chiller", min_value=0, step=1)
+    no_air_cooled = st.number_input("Jumlah Air Cooled Chiller", min_value=0, step=1, format="%d")
 with col2:
-    no_water_cooled = st.number_input("Jumlah Water Cooled Chiller", min_value=0, step=1)
+    no_water_cooled = st.number_input("Jumlah Water Cooled Chiller", min_value=0, step=1, format="%d")
 
 # ===============================================
 st.header("3. Preventive Maintenance (PM)")
-hours_per_day_pm = st.number_input("Jam kerja per hari untuk PM", value=8.0, step=0.5)
-manpower_pm = st.number_input("Jumlah Teknisi untuk PM", min_value=1, step=1)
-pm_visits = st.number_input("Jumlah Kunjungan PM", min_value=0, step=1)
+hours_per_day_pm = st.number_input("Jam kerja per hari untuk PM", value=8.0, step=0.5, format="%.1f")
+manpower_pm = st.number_input("Jumlah Teknisi untuk PM", min_value=1, step=1, format="%d")
+pm_visits = st.number_input("Jumlah Kunjungan PM", min_value=0, step=1, format="%d")
 
 # Hitung otomatis Total Hari PM
 base_pm_days = (no_air_cooled * 1) + (no_water_cooled / 2)
@@ -34,25 +34,26 @@ total_pm_days = st.number_input(
     "Total Hari PM (hasil hitung otomatis dari chiller × visit × manpower, bisa diedit manual)",
     min_value=0.0,
     value=float(auto_total_pm_days),
-    step=0.5
+    step=0.5,
+    format="%.1f"
 )
 
-st.success(f"Total Hari PM: {total_pm_days:,.2f} hari")
+st.success(f"Total Hari PM: {total_pm_days:,.1f} hari")
 
 # ===============================================
 st.header("4. Annual Shutdown (ASD)")
-asd_visits = st.number_input("Jumlah Kunjungan ASD", min_value=0, step=1)
+asd_visits = st.number_input("Jumlah Kunjungan ASD", min_value=0, step=1, format="%d")
 
 default_days_per_visit_asd = asd_visits if asd_visits > 0 else 0.0
-days_per_visit_asd = st.number_input("Jumlah Hari per Kunjungan ASD", min_value=0.0, value=float(default_days_per_visit_asd), step=0.5)
+days_per_visit_asd = st.number_input("Jumlah Hari per Kunjungan ASD", min_value=0.0, value=float(default_days_per_visit_asd), step=0.5, format="%.1f")
 
-hours_per_day_asd = st.number_input("Jam kerja per hari untuk ASD", value=8.0, step=0.5)
+hours_per_day_asd = st.number_input("Jam kerja per hari untuk ASD", value=8.0, step=0.5, format="%.1f")
 total_asd_days = asd_visits * days_per_visit_asd
 
 # ===============================================
 st.header("5. Emergency Call (EC)")
-ec_visits = st.number_input("Jumlah Kunjungan EC", min_value=0, step=1)
-hours_per_day_ec = st.number_input("Jam kerja per hari untuk EC", value=6.0, step=0.5)
+ec_visits = st.number_input("Jumlah Kunjungan EC", min_value=0, step=1, format="%d")
+hours_per_day_ec = st.number_input("Jam kerja per hari untuk EC", value=6.0, step=0.5, format="%.1f")
 total_ec_days = ec_visits * 1
 
 # ===============================================
@@ -72,12 +73,11 @@ total_cost = cost_pm + cost_asd + cost_ec
 # ===============================================
 st.header("6. Pricing")
 unit_price_idr = st.number_input("Harga Satuan PM/ASD (Rp)", value=2560000.0, step=1000.0, format="%.0f")
-ec_price_per_day_idr = st.number_input("Harga Satuan EC per Hari (Rp)", value=7500000.0, step=1000.0, format="%.0f")
 
 price_pm_asd = (total_pm_days + total_asd_days) * unit_price_idr
-price_ec = total_ec_days * ec_price_per_day_idr
 
-total_price = price_pm_asd + price_ec
+# Total Price hanya dari PM + ASD saja, EC tidak masuk pricing
+total_price = price_pm_asd
 
 # Margin
 margin = (total_price - total_cost) / total_price * 100 if total_price != 0 else 0
@@ -88,11 +88,11 @@ offered_price_idr = st.number_input("Harga Penawaran (Rp)", min_value=0.0, value
 # ===============================================
 # OUTPUT
 st.header("📋 Hasil Perhitungan Akhir (Rupiah)")
-st.write(f"Total PM Days: {total_pm_days:,.2f} hari")
-st.write(f"Total ASD Days: {total_asd_days:,.2f} hari")
-st.write(f"Total EC Days: {total_ec_days:,.2f} hari")
-st.write(f"Total Hours: {total_hours:,.2f} jam")
-st.write(f"Total Days: {total_days:,.2f} hari")
+st.write(f"Total PM Days: {total_pm_days:,.1f} hari")
+st.write(f"Total ASD Days: {total_asd_days:,.1f} hari")
+st.write(f"Total EC Days: {total_ec_days:,.1f} hari")
+st.write(f"Total Hours: {total_hours:,.1f} jam")
+st.write(f"Total Days: {total_days:,.1f} hari")
 st.write("---")
 st.subheader("Breakdown Cost (Rupiah):")
 st.write(f"Cost PM: Rp {cost_pm:,.0f}")
@@ -102,7 +102,6 @@ st.write(f"Total Cost: Rp {total_cost:,.0f}")
 st.write("---")
 st.subheader("Breakdown Price (Rupiah):")
 st.write(f"Price PM + ASD: Rp {price_pm_asd:,.0f}")
-st.write(f"Price EC: Rp {price_ec:,.0f}")
 st.write(f"Total Price: Rp {total_price:,.0f}")
 st.write("---")
 st.subheader("Margin dari Total Price:")
@@ -125,7 +124,6 @@ data = {
         "Cost EC (Rp)",
         "Total Cost (Rp)",
         "Price PM+ASD (Rp)",
-        "Price EC (Rp)",
         "Total Price (Rp)",
         "Harga Penawaran (Rp)",
         "Margin (%)",
@@ -141,7 +139,6 @@ data = {
         cost_ec,
         total_cost,
         price_pm_asd,
-        price_ec,
         total_price,
         offered_price_idr,
         margin,
