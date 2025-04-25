@@ -67,19 +67,11 @@ total_hours = total_hours_pm_asd + total_hours_ec
 total_cost = total_hours * technician_unit_cost_per_hour_idr
 
 # ===============================================
-st.header("6. Pricing")
-unit_price_idr = st.number_input("Harga Satuan PM/ASD (Rp)", value=2560000.0, step=1000.0, format="%.0f")
+st.header("6. Harga Yang Ditawarkan")
+offered_price_idr = st.number_input("Harga yang Ditawarkan (Rp)", min_value=0.0, step=1000.0, format="%.0f")
 
-price_pm_asd = (total_pm_days + total_asd_days) * unit_price_idr
-
-# Total Price hanya dari PM + ASD
-total_price = price_pm_asd
-
-# Margin
-margin = (total_price - total_cost) / total_price * 100 if total_price != 0 else 0
-
-# Harga Penawaran manual
-offered_price_idr = st.number_input("Harga Penawaran (Rp)", min_value=0.0, value=float(total_price), step=1000.0, format="%.0f")
+# Margin berdasarkan harga yang ditawarkan
+margin = (offered_price_idr - total_cost) / offered_price_idr * 100 if offered_price_idr != 0 else 0
 
 # ===============================================
 # OUTPUT
@@ -89,19 +81,19 @@ st.write(f"Total ASD Days: {total_asd_days:,.1f} hari")
 st.write(f"Total EC Days: {total_ec_days:,.1f} hari")
 st.write(f"Total Hours: {total_hours:,.1f} jam")
 st.write(f"Total Days: {total_days:,.1f} hari")
-st.write("---")
-st.subheader("Total Cost (Rupiah):")
-st.write(f"Total Cost (semua jam x biaya teknisi): Rp {total_cost:,.0f}")
-st.write("---")
-st.subheader("Breakdown Price (Rupiah):")
-st.write(f"Price PM + ASD: Rp {price_pm_asd:,.0f}")
-st.write(f"Total Price: Rp {total_price:,.0f}")
-st.write("---")
-st.subheader("Margin dari Total Price:")
-st.write(f"{margin:.2f}%")
 
-st.subheader("Harga Penawaran Manual:")
-st.write(f"Harga Penawaran: Rp {offered_price_idr:,.0f}")
+st.write("---")
+
+st.subheader("💵 Price vs Cost")
+st.write(f"**Harga yang Ditawarkan (Price): Rp {offered_price_idr:,.0f}**")
+st.write(f"**Total Cost (semua jam x biaya teknisi): Rp {total_cost:,.0f}**")
+st.caption(f"Perhitungan: {total_hours:,.1f} jam x Rp {technician_unit_cost_per_hour_idr:,.0f} per jam = Rp {total_cost:,.0f}")
+
+# Warning margin merah kalau <40%
+if margin < 40:
+    st.error(f"⚠️ Margin: {margin:.2f}% (Kurang dari 40%)")
+else:
+    st.success(f"✅ Margin: {margin:.2f}%")
 
 # ===============================================
 # Prepare Data untuk Download Excel
@@ -113,9 +105,7 @@ data = {
         "Total Hours",
         "Total Days",
         "Total Cost (Rp)",
-        "Price PM+ASD (Rp)",
-        "Total Price (Rp)",
-        "Harga Penawaran (Rp)",
+        "Harga Ditawarkan (Rp)",
         "Margin (%)",
     ],
     "Value": [
@@ -125,8 +115,6 @@ data = {
         total_hours,
         total_days,
         total_cost,
-        price_pm_asd,
-        total_price,
         offered_price_idr,
         margin,
     ],
