@@ -38,20 +38,28 @@ ec_visits = st.number_input("Jumlah Kunjungan EC (times)", min_value=0, step=1)
 hours_per_day_ec = st.number_input("Jam kerja per hari untuk EC", value=6.0)
 total_ec_days = ec_visits * 1
 
-# Perhitungan
+# Perhitungan Total Days
 total_days = total_pm_days + total_asd_days + total_ec_days
-total_hours_pm_asd = (total_pm_days * hours_per_day_pm) + (total_asd_days * hours_per_day_asd)
-total_hours_ec = (total_ec_days * hours_per_day_ec)
 
-total_cost = (total_hours_pm_asd * technician_unit_cost_per_hour) + (total_hours_ec * ec_unit_cost_per_hour)
+# Breakdown Cost
+cost_pm = total_pm_days * hours_per_day_pm * technician_unit_cost_per_hour
+cost_asd = total_asd_days * hours_per_day_asd * technician_unit_cost_per_hour
+cost_ec = total_ec_days * hours_per_day_ec * ec_unit_cost_per_hour
+
+total_cost = cost_pm + cost_asd + cost_ec
 
 st.header("6. Pricing")
 customer_type = st.selectbox("Tipe Customer", options=["Private", "Government"])
 unit_price = 160.0 if customer_type == "Private" else 112.5
 ec_price_per_day = 468.75
 
-total_price = (total_pm_days + total_asd_days) * unit_price + (total_ec_days * ec_price_per_day)
+# Breakdown Price
+price_pm_asd = (total_pm_days + total_asd_days) * unit_price
+price_ec = total_ec_days * ec_price_per_day
 
+total_price = price_pm_asd + price_ec
+
+# Margin
 margin = (total_price - total_cost) / total_price * 100 if total_price != 0 else 0
 
 st.header("📋 Hasil Perhitungan")
@@ -59,12 +67,22 @@ st.write(f"Total PM Days: {total_pm_days:.2f} hari")
 st.write(f"Total ASD Days: {total_asd_days:.2f} hari")
 st.write(f"Total EC Days: {total_ec_days:.2f} hari")
 st.write(f"Total Days: {total_days:.2f} hari")
-st.write(f"Total Jam PM+ASD: {total_hours_pm_asd:.2f} jam")
-st.write(f"Total Jam EC: {total_hours_ec:.2f} jam")
-st.write(f"Total Biaya: ${total_cost:,.2f}")
-st.write(f"Total Harga: ${total_price:,.2f}")
-st.write(f"Margin: {margin:.2f}%")
+st.write("---")
+st.subheader("Breakdown Cost:")
+st.write(f"Cost PM: ${cost_pm:,.2f}")
+st.write(f"Cost ASD: ${cost_asd:,.2f}")
+st.write(f"Cost EC: ${cost_ec:,.2f}")
+st.write(f"Total Cost: ${total_cost:,.2f}")
+st.write("---")
+st.subheader("Breakdown Price:")
+st.write(f"Price PM + ASD: ${price_pm_asd:,.2f}")
+st.write(f"Price EC: ${price_ec:,.2f}")
+st.write(f"Total Price: ${total_price:,.2f}")
+st.write("---")
+st.subheader("Margin:")
+st.write(f"{margin:.2f}%")
 
+# Optional Tampilkan IDR
 show_idr = st.checkbox("Tampilkan juga dalam IDR?")
 if show_idr:
     st.write(f"Total Biaya (IDR): Rp {total_cost * usd_to_idr:,.0f}")
@@ -77,9 +95,12 @@ data = {
         "Total ASD Days",
         "Total EC Days",
         "Total Days",
-        "Total Jam PM+ASD",
-        "Total Jam EC",
+        "Cost PM ($)",
+        "Cost ASD ($)",
+        "Cost EC ($)",
         "Total Cost ($)",
+        "Price PM+ASD ($)",
+        "Price EC ($)",
         "Total Price ($)",
         "Margin (%)",
     ],
@@ -88,9 +109,12 @@ data = {
         total_asd_days,
         total_ec_days,
         total_days,
-        total_hours_pm_asd,
-        total_hours_ec,
+        cost_pm,
+        cost_asd,
+        cost_ec,
         total_cost,
+        price_pm_asd,
+        price_ec,
         total_price,
         margin,
     ],
@@ -107,8 +131,8 @@ def to_excel(df):
     return processed_data
 
 st.download_button(
-    label="📥 Download Hasil ke Excel",
+    label="📥 Download Hasil Breakdown ke Excel",
     data=to_excel(df_result),
-    file_name="kalkulator_biaya_pm_asd_ec.xlsx",
+    file_name="kalkulator_biaya_breakdown_pm_asd_ec.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 )
