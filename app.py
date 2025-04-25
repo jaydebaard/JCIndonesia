@@ -27,7 +27,7 @@ total_pm_days = pm_visits_air + pm_visits_water
 
 st.header("4. Annual Shutdown (ASD)")
 asd_visits = st.number_input("Jumlah Kunjungan ASD (times)", min_value=0, step=1)
-days_per_visit_asd = st.number_input("Jumlah Hari per Kunjungan ASD", min_value=0.0)
+days_per_visit_asd = st.number_input("Jumlah Hari per Kunjungan ASD (hari, bilangan bulat)", min_value=1, step=1, format="%d")
 hours_per_day_asd = st.number_input("Jam kerja per hari untuk ASD", value=8.0)
 total_asd_days = asd_visits * days_per_visit_asd
 
