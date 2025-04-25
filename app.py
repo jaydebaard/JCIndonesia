@@ -58,8 +58,11 @@ hours_per_day_ec = st.number_input("Jam kerja per hari untuk EC", value=6.0, ste
 total_ec_days = ec_visits * 1
 
 # ===============================================
-# Perhitungan Total Days
+# Perhitungan Total Days & Total Hours
 total_days = total_pm_days + total_asd_days + total_ec_days
+total_hours_pm_asd = (total_pm_days * hours_per_day_pm) + (total_asd_days * hours_per_day_asd)
+total_hours_ec = (total_ec_days * hours_per_day_ec)
+total_hours = total_hours_pm_asd + total_hours_ec
 
 # Breakdown Cost
 cost_pm = total_pm_days * hours_per_day_pm * technician_unit_cost_per_hour
@@ -82,12 +85,16 @@ total_price = price_pm_asd + price_ec
 # Margin
 margin = (total_price - total_cost) / total_price * 100 if total_price != 0 else 0
 
+# Harga Penawaran manual
+offered_price = st.number_input("Harga Penawaran ($)", min_value=0.0, value=float(total_price), step=0.5)
+
 # ===============================================
 # OUTPUT
 st.header("📋 Hasil Perhitungan Akhir")
 st.write(f"Total PM Days: {total_pm_days:.2f} hari")
 st.write(f"Total ASD Days: {total_asd_days:.2f} hari")
 st.write(f"Total EC Days: {total_ec_days:.2f} hari")
+st.write(f"Total Hours: {total_hours:.2f} jam")
 st.write(f"Total Days: {total_days:.2f} hari")
 st.write("---")
 st.subheader("Breakdown Cost:")
@@ -101,15 +108,19 @@ st.write(f"Price PM + ASD: ${price_pm_asd:,.2f}")
 st.write(f"Price EC: ${price_ec:,.2f}")
 st.write(f"Total Price: ${total_price:,.2f}")
 st.write("---")
-st.subheader("Margin:")
+st.subheader("Margin vs Total Price:")
 st.write(f"{margin:.2f}%")
 
+st.subheader("Harga Penawaran Manual:")
+st.write(f"Harga Penawaran: ${offered_price:,.2f}")
+
 # ===============================================
-# Optional tampilkan IDR
+# Optional: tampilkan IDR
 show_idr = st.checkbox("Tampilkan juga dalam IDR?")
 if show_idr:
     st.write(f"Total Biaya (IDR): Rp {total_cost * usd_to_idr:,.0f}")
     st.write(f"Total Harga (IDR): Rp {total_price * usd_to_idr:,.0f}")
+    st.write(f"Harga Penawaran (IDR): Rp {offered_price * usd_to_idr:,.0f}")
 
 # ===============================================
 # Prepare Data untuk Download Excel
@@ -118,6 +129,7 @@ data = {
         "Total PM Days",
         "Total ASD Days",
         "Total EC Days",
+        "Total Hours",
         "Total Days",
         "Cost PM ($)",
         "Cost ASD ($)",
@@ -126,12 +138,14 @@ data = {
         "Price PM+ASD ($)",
         "Price EC ($)",
         "Total Price ($)",
+        "Harga Penawaran ($)",
         "Margin (%)",
     ],
     "Value": [
         total_pm_days,
         total_asd_days,
         total_ec_days,
+        total_hours,
         total_days,
         cost_pm,
         cost_asd,
@@ -140,6 +154,7 @@ data = {
         price_pm_asd,
         price_ec,
         total_price,
+        offered_price,
         margin,
     ],
 }
