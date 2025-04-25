@@ -8,8 +8,8 @@ st.title("🧮 Kalkulator Biaya PM, ASD, dan EC Chiller (Rupiah)")
 
 # ===============================================
 st.header("1. Cost Setting (Rupiah)")
-technician_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Teknisi (Rp)", value=265600.0, step=1000.0)
-ec_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Emergency Call (Rp)", value=1250000.0, step=1000.0)
+technician_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Teknisi (Rp)", value=265600.0, step=1000.0, format="%.0f")
+ec_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Emergency Call (Rp)", value=1250000.0, step=1000.0, format="%.0f")
 
 # ===============================================
 st.header("2. Jumlah Chiller")
@@ -37,7 +37,7 @@ total_pm_days = st.number_input(
     step=0.5
 )
 
-st.success(f"Total Hari PM: {total_pm_days:.2f} hari")
+st.success(f"Total Hari PM: {total_pm_days:,.2f} hari")
 
 # ===============================================
 st.header("4. Annual Shutdown (ASD)")
@@ -71,8 +71,8 @@ total_cost = cost_pm + cost_asd + cost_ec
 
 # ===============================================
 st.header("6. Pricing")
-unit_price_idr = st.number_input("Harga Satuan PM/ASD (Rp)", value=2560000.0, step=1000.0)
-ec_price_per_day_idr = st.number_input("Harga Satuan EC per Hari (Rp)", value=7500000.0, step=1000.0)
+unit_price_idr = st.number_input("Harga Satuan PM/ASD (Rp)", value=2560000.0, step=1000.0, format="%.0f")
+ec_price_per_day_idr = st.number_input("Harga Satuan EC per Hari (Rp)", value=7500000.0, step=1000.0, format="%.0f")
 
 price_pm_asd = (total_pm_days + total_asd_days) * unit_price_idr
 price_ec = total_ec_days * ec_price_per_day_idr
@@ -83,16 +83,16 @@ total_price = price_pm_asd + price_ec
 margin = (total_price - total_cost) / total_price * 100 if total_price != 0 else 0
 
 # Harga Penawaran manual
-offered_price_idr = st.number_input("Harga Penawaran (Rp)", min_value=0.0, value=float(total_price), step=1000.0)
+offered_price_idr = st.number_input("Harga Penawaran (Rp)", min_value=0.0, value=float(total_price), step=1000.0, format="%.0f")
 
 # ===============================================
 # OUTPUT
-st.header("📋 Hasil Perhitungan Akhir (Rp)")
-st.write(f"Total PM Days: {total_pm_days:.2f} hari")
-st.write(f"Total ASD Days: {total_asd_days:.2f} hari")
-st.write(f"Total EC Days: {total_ec_days:.2f} hari")
-st.write(f"Total Hours: {total_hours:.2f} jam")
-st.write(f"Total Days: {total_days:.2f} hari")
+st.header("📋 Hasil Perhitungan Akhir (Rupiah)")
+st.write(f"Total PM Days: {total_pm_days:,.2f} hari")
+st.write(f"Total ASD Days: {total_asd_days:,.2f} hari")
+st.write(f"Total EC Days: {total_ec_days:,.2f} hari")
+st.write(f"Total Hours: {total_hours:,.2f} jam")
+st.write(f"Total Days: {total_days:,.2f} hari")
 st.write("---")
 st.subheader("Breakdown Cost (Rupiah):")
 st.write(f"Cost PM: Rp {cost_pm:,.0f}")
