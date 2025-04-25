@@ -3,8 +3,8 @@ import pandas as pd
 from io import BytesIO
 
 # Set page config
-st.set_page_config(page_title="Kalkulator Biaya PM, ASD, EC Chiller (Rupiah)", layout="centered")
-st.title("🧮 Kalkulator Biaya PM, ASD, dan EC Chiller (Rupiah)")
+st.set_page_config(page_title="Kalkulator Biaya PM, ASD, EC + Subcontractor (Rupiah)", layout="centered")
+st.title("🧮 Kalkulator Biaya PM, ASD, EC, dan Subkontraktor (Rupiah)")
 
 # ===============================================
 st.header("1. Cost Setting (Rupiah)")
@@ -63,18 +63,18 @@ total_hours_ec = (total_ec_days * hours_per_day_ec)
 total_hours = total_hours_pm_asd + total_hours_ec
 
 # ===============================================
-# Cost HANYA dari total hours x biaya teknisi
-total_cost = total_hours * technician_unit_cost_per_hour_idr
+# Cost Teknisi
+total_cost_technician = total_hours * technician_unit_cost_per_hour_idr
 
 # ===============================================
 st.header("6. Harga Yang Ditawarkan")
 offered_price_idr = st.number_input("Harga yang Ditawarkan (Rp)", min_value=0.0, step=1000.0, format="%.0f")
 
-# Margin berdasarkan harga yang ditawarkan
-margin = (offered_price_idr - total_cost) / offered_price_idr * 100 if offered_price_idr != 0 else 0
+# Margin dari harga yang ditawarkan
+margin = (offered_price_idr - total_cost_technician) / offered_price_idr * 100 if offered_price_idr != 0 else 0
 
 # ===============================================
-# OUTPUT
+# OUTPUT Price vs Cost
 st.header("📋 Hasil Perhitungan Akhir (Rupiah)")
 st.write(f"Total PM Days: {total_pm_days:,.1f} hari")
 st.write(f"Total ASD Days: {total_asd_days:,.1f} hari")
@@ -84,18 +84,37 @@ st.write(f"Total Days: {total_days:,.1f} hari")
 
 st.write("---")
 
-st.subheader("💵 Price vs Cost")
+st.subheader("💵 Price vs Cost (Teknisi)")
 st.write(f"**Harga yang Ditawarkan (Price): Rp {offered_price_idr:,.0f}**")
-st.write(f"**Total Cost (semua jam x biaya teknisi): Rp {total_cost:,.0f}**")
-st.caption(f"Perhitungan: {total_hours:,.1f} jam x Rp {technician_unit_cost_per_hour_idr:,.0f} per jam = Rp {total_cost:,.0f}")
+st.write(f"**Total Cost Teknisi: Rp {total_cost_technician:,.0f}**")
+st.caption(f"Perhitungan: {total_hours:,.1f} jam x Rp {technician_unit_cost_per_hour_idr:,.0f} per jam = Rp {total_cost_technician:,.0f}")
 
-# Warning margin merah kalau <40%
 if margin < 40:
     st.error(f"⚠️ Margin: {margin:.2f}% (Kurang dari 40%)")
 else:
     st.success(f"✅ Margin: {margin:.2f}%")
 
 # ===============================================
+# Bagian Baru - Subcontractor Work
+st.header("7. Subcontractor Works")
+
+subcon_categories = ["Helper", "Condenser Cleaning", "Other"]
+selected_category = st.selectbox("Pilih Kategori Subcontractor", subcon_categories)
+
+subcon_days = st.number_input(f"Jumlah Hari untuk {selected_category}", min_value=0.0, step=0.5, format="%.1f")
+subcon_hours_per_day = st.number_input(f"Jam kerja per Hari untuk {selected_category}", min_value=0.0, step=0.5, format="%.1f")
+subcon_cost_per_hour = st.number_input(f"Biaya per Jam untuk {selected_category} (Rp)", min_value=0.0, step=1000.0, format="%.0f")
+
+# Hitung cost subcon
+subcon_total_hours = subcon_days * subcon_hours_per_day
+subcon_total_cost = subcon_total_hours * subcon_cost_per_hour
+
+st.success(f"Total Subcontractor Cost untuk {selected_category}: Rp {subcon_total_cost:,.0f}")
+st.caption(f"Perhitungan: {subcon_total_hours:,.1f} jam x Rp {subcon_cost_per_hour:,.0f} per jam = Rp {subcon_total_cost:,.0f}")
+
+# ===============================================
+# Download Data (Optional bisa tambahkan nanti kalau mau multi subcon)
+
 # Prepare Data untuk Download Excel
 data = {
     "Item": [
@@ -104,9 +123,10 @@ data = {
         "Total EC Days",
         "Total Hours",
         "Total Days",
-        "Total Cost (Rp)",
+        "Total Cost Teknisi (Rp)",
         "Harga Ditawarkan (Rp)",
         "Margin (%)",
+        f"Total Cost Subcontractor ({selected_category}) (Rp)",
     ],
     "Value": [
         total_pm_days,
@@ -114,9 +134,10 @@ data = {
         total_ec_days,
         total_hours,
         total_days,
-        total_cost,
+        total_cost_technician,
         offered_price_idr,
         margin,
+        subcon_total_cost,
     ],
 }
 
@@ -133,6 +154,6 @@ def to_excel(df):
 st.download_button(
     label="📥 Download Hasil Breakdown ke Excel (Rupiah)",
     data=to_excel(df_result),
-    file_name="kalkulator_biaya_pm_asd_ec_idr.xlsx",
+    file_name="kalkulator_biaya_pm_asd_ec_subcon_idr.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 )
