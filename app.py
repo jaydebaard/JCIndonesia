@@ -21,9 +21,11 @@ with col2:
 
 st.header("3. Preventive Maintenance (PM)")
 hours_per_day_pm = st.number_input("Jam kerja per hari untuk PM", value=8.0)
-pm_visits_air = no_air_cooled * 1
-pm_visits_water = no_water_cooled / 2
-total_pm_days = pm_visits_air + pm_visits_water
+pm_visits = st.number_input("Jumlah Kunjungan PM (times)", min_value=0, step=1)
+days_per_visit_pm = st.number_input("Jumlah Hari per Kunjungan PM (bilangan bulat)", min_value=1, step=1, format="%d")
+manpower_pm = st.number_input("Jumlah Teknisi untuk PM", min_value=1, step=1)
+
+total_pm_days = pm_visits * days_per_visit_pm * manpower_pm
 
 st.header("4. Annual Shutdown (ASD)")
 asd_visits = st.number_input("Jumlah Kunjungan ASD (times)", min_value=0, step=1)
