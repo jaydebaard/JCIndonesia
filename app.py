@@ -22,12 +22,13 @@ with col2:
 st.header("3. Preventive Maintenance (PM)")
 hours_per_day_pm = st.number_input("Jam kerja per hari untuk PM", value=8.0, step=0.5)
 manpower_pm = st.number_input("Jumlah Teknisi untuk PM", min_value=1, step=1)
+pm_visits = st.number_input("Jumlah Kunjungan PM", min_value=0, step=1)
 
-# Hitung otomatis Total PM Days dari jumlah chiller dan manpower
+# Hitung otomatis Total PM Days dari jumlah chiller, jumlah kunjungan, manpower
 total_pm_base_days = (no_air_cooled * 1) + (no_water_cooled / 2)
-auto_total_pm_days = total_pm_base_days * manpower_pm
+auto_total_pm_days = total_pm_base_days * pm_visits * manpower_pm
 
-# Input untuk Total PM Days (default dari perhitungan, bisa diedit manual)
+# Input Total PM Days (default dari hitungan, bisa diubah manual)
 total_pm_days = st.number_input("Total Hari PM", min_value=0.0, value=float(auto_total_pm_days), step=0.5)
 
 st.success(f"Total Hari PM: {total_pm_days:.2f} hari")
@@ -35,7 +36,7 @@ st.success(f"Total Hari PM: {total_pm_days:.2f} hari")
 st.header("4. Annual Shutdown (ASD)")
 asd_visits = st.number_input("Jumlah Kunjungan ASD (times)", min_value=0, step=1)
 
-# Default: jumlah hari per visit sama dengan jumlah visit
+# Default: jumlah hari per visit sama dengan jumlah kunjungan
 default_days_per_visit_asd = asd_visits if asd_visits > 0 else 0.0
 days_per_visit_asd = st.number_input("Jumlah Hari per Kunjungan ASD", min_value=0.0, value=float(default_days_per_visit_asd), step=0.5)
 
@@ -91,7 +92,7 @@ st.write("---")
 st.subheader("Margin:")
 st.write(f"{margin:.2f}%")
 
-# Optional tampilkan IDR
+# Optional: tampilkan IDR
 show_idr = st.checkbox("Tampilkan juga dalam IDR?")
 if show_idr:
     st.write(f"Total Biaya (IDR): Rp {total_cost * usd_to_idr:,.0f}")
