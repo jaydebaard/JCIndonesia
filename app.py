@@ -90,6 +90,20 @@ with st.container():
 
     margin_labour = (offered_price_idr - total_cost_technician) / offered_price_idr * 100 if offered_price_idr != 0 else 0
     st.write(f"🔹 Margin Labour Costing: {margin_labour:.2f}%")
+    
+    # Analisa Margin Labour
+if psa_type == "New PSA":
+    if margin_labour >= 20:
+        st.success(f"✅ Margin Labour ({margin_labour:.2f}%) memenuhi syarat New PSA (≥ 20%). OK!")
+    else:
+        st.error(f"⚠️ Margin Labour ({margin_labour:.2f}%) kurang dari syarat 20%. Harus dinaikkan.")
+elif psa_type == "Renewal PSA":
+    if parent_margin is not None:
+        if margin_labour > parent_margin:
+            st.success(f"✅ Margin Labour ({margin_labour:.2f}%) lebih besar dari Parent Margin ({parent_margin:.2f}%). OK!")
+        else:
+            st.error(f"⚠️ Margin Labour ({margin_labour:.2f}%) lebih kecil dari Parent Margin ({parent_margin:.2f}%). Harus diperbaiki.")
+
 
 # (lanjut Subcontractor, Other Cost, Final Summary, Export Excel)
 
