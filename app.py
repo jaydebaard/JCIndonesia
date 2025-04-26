@@ -112,14 +112,14 @@ with st.expander("➕ Tambahkan Subcontractor Works"):
         for work in work_types:
             st.subheader(f"🔹 {work}")
             days = st.number_input(f"Jumlah Hari pekerjaan {work}", min_value=0.0, step=0.5, key=f"days_{work}")
-            quantity = st.number_input(f"Quantity pekerja {work}", min_value=0, step=1, key=f"qty_{work}")
+            jumlah = st.number_input(f"jumlah pekerja {work}", min_value=0, step=1, key=f"qty_{work}")
             cost_per_day = st.number_input(f"Biaya satuan pekerjaan {work} (Rp)", min_value=0.0, step=1000.0, key=f"cost_{work}")
-            total_cost = days * quantity * cost_per_day
+            total_cost = days * jumlah * cost_per_day
             subcontractor_details.append({
                 "Pekerjaan": work,
                 "Jumlah Hari": days,
-                "Quantity": quantity,
-                "Harga per Hari per Quantity (Rp)": cost_per_day,
+                "jumlah": jumlah,
+                "Harga per Hari per jumlah (Rp)": cost_per_day,
                 "Total Cost (Rp)": total_cost
             })
         df_subcontractor = pd.DataFrame(subcontractor_details)
