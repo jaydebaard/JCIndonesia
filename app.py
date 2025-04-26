@@ -107,6 +107,7 @@ with st.container():
             st.error(f"⚠️ Margin Labour ({margin_labour:.2f}%) kurang dari 20%. Harus dinaikkan!")
 
 # SUBCONTRACTOR WORKS
+# SUBCONTRACTOR WORKS
 st.header("👷 SUBCONTRACTOR WORKS (Optional)")
 with st.expander("➕ Tambahkan Subcontractor Works"):
     add_subcon = st.checkbox("Centang untuk input biaya Subcontractor", value=False)
@@ -119,13 +120,19 @@ with st.expander("➕ Tambahkan Subcontractor Works"):
             st.subheader(f"🔹 {work}")
 
             if work == "Helper":
-                days = total_pm_days + total_asd_days + total_ec_days  # 👈 Total semua Labour Days
-                st.info(f"Jumlah Hari Helper mengikuti Total Hari Labour (PM + ASD + EC): {days:.1f} hari")
+                default_days_helper = total_pm_days + total_asd_days + total_ec_days
+                days = st.number_input(
+                    f"Jumlah Hari pekerjaan {work} (default: {default_days_helper:.1f} hari)", 
+                    min_value=0.0, 
+                    value=float(default_days_helper), 
+                    step=0.5, 
+                    key=f"days_{work}"
+                )
             else:
                 days = st.number_input(f"Jumlah Hari pekerjaan {work}", min_value=0.0, step=0.5, key=f"days_{work}")
 
             jumlah = st.number_input(f"Jumlah Pekerja {work}", min_value=0, step=1, key=f"qty_{work}")
-            cost_per_day = default_cost_per_day  # Harga tetap
+            cost_per_day = default_cost_per_day  # Harga tetap 700rb
 
             total_cost = days * jumlah * cost_per_day
 
