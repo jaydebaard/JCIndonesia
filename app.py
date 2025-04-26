@@ -78,4 +78,65 @@ with st.expander("➕ Tambahkan Subcontractor Works"):
         st.subheader("Condenser Cleaning Work")
         cleaning_days = st.number_input("Jumlah Hari Cleaning", min_value=0.0, step=0.5, format="%.1f")
         cleaning_hours_per_day = st.number_input("Jam kerja per Hari Cleaning", min_value=0.0, value=8.0, step=0.5, format="%.1f")
-        cleaning_cost_per_hour = st.number_input("Biaya per Jam Cleaning (Rp)",
+        cleaning_cost_per_hour = st.number_input("Biaya per Jam Cleaning (Rp)", min_value=0.0, value=62500.0, step=1000.0, format="%.0f")
+        cleaning_total_cost = cleaning_days * cleaning_hours_per_day * cleaning_cost_per_hour
+
+        st.subheader("Other Subcontractor Work")
+        other_days = st.number_input("Jumlah Hari Other", min_value=0.0, step=0.5, format="%.1f")
+        other_hours_per_day = st.number_input("Jam kerja per Hari Other", min_value=0.0, value=8.0, step=0.5, format="%.1f")
+        other_cost_per_hour = st.number_input("Biaya per Jam Other (Rp)", min_value=0.0, step=1000.0, format="%.0f")
+        other_total_cost = other_days * other_hours_per_day * other_cost_per_hour
+
+        total_subcontractor_cost = helper_total_cost + cleaning_total_cost + other_total_cost
+    else:
+        total_subcontractor_cost = 0.0
+
+# ===============================================
+# Other Cost
+st.header("8. Other Cost (Optional)")
+
+with st.expander("➕ Tambahkan Other Cost (Transport, Konsumsi, EHS)"):
+    add_other_cost = st.checkbox("Centang untuk input biaya lainnya", value=False)
+    if add_other_cost:
+        transportation_cost = st.number_input("Biaya Transportasi (Rp)", min_value=0.0, step=10000.0, format="%.0f")
+        meal_cost = st.number_input("Biaya Konsumsi (Rp)", min_value=0.0, step=10000.0, format="%.0f")
+        other_cost = st.number_input("Biaya Lain-lain (Rp)", min_value=0.0, step=10000.0, format="%.0f")
+
+        ehs_cost = 0.005 * offered_price_idr
+        contingency_cost = 0.04 * offered_price_idr
+
+        st.write(f"🔒 EHS (0.5% dari Harga Ditawarkan): Rp {ehs_cost:,.0f}")
+        st.write(f"🔒 Contingency Fee (4% dari Harga Ditawarkan): Rp {contingency_cost:,.0f}")
+
+        total_other_cost = transportation_cost + meal_cost + other_cost + ehs_cost + contingency_cost
+    else:
+        total_other_cost = 0.0
+
+# ===============================================
+# Spare Parts
+st.header("9. Spare Parts (Optional)")
+
+with st.expander("➕ Tambahkan Biaya Spare Parts"):
+    add_spare_parts = st.checkbox("Centang untuk input biaya spare parts", value=False)
+    if add_spare_parts:
+        spare_parts_cost = st.number_input("Total Biaya Spare Parts (Rp)", min_value=0.0, step=10000.0, format="%.0f")
+    else:
+        spare_parts_cost = 0.0
+
+# ===============================================
+# Final Cost Calculation
+total_final_cost = total_cost_technician + total_subcontractor_cost + total_other_cost + spare_parts_cost
+margin_final = (offered_price_idr - total_final_cost) / offered_price_idr * 100 if offered_price_idr != 0 else 0
+
+# ===============================================
+# Final Display
+st.header("🧾 Ringkasan Akhir")
+st.metric(label="Total Final Cost (Rp)", value=f"Rp {total_final_cost:,.0f}")
+
+if margin_final < 40:
+    st.error(f"⚠️ Margin Final: {margin_final:.2f}% (Di bawah 40%)")
+else:
+    st.success(f"✅ Margin Final: {margin_final:.2f}% (Bagus)")
+
+# ===============================================
+# End of App
