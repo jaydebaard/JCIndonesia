@@ -148,27 +148,44 @@ with st.expander("➕ Tambahkan Subcontractor Works"):
         df_subcontractor = pd.DataFrame()
 
 # OTHER COSTS
-st.header("💵 OTHER COSTS (Optional)")
-with st.expander("➕ Tambahkan Other Costs"):
-    add_other_cost = st.checkbox("Centang untuk input biaya lainnya", value=False)
-    if add_other_cost:
-        transportation_cost = st.number_input("Biaya Transportasi (Rp)", min_value=0.0, step=10000.0)
-        meal_cost = st.number_input("Biaya Konsumsi (Rp)", min_value=0.0, step=10000.0)
-        other_cost = st.number_input("Biaya Lain-lain (Rp)", min_value=0.0, step=10000.0)
-        ehs_cost = 0.005 * (total_cost_technician + total_subcontractor_cost)
-        subtotal_for_contingency = total_cost_technician + total_subcontractor_cost + transportation_cost + meal_cost + other_cost
-        contingency_cost = 0.04 * subtotal_for_contingency
-        total_other_cost = transportation_cost + meal_cost + other_cost + ehs_cost + contingency_cost
-        st.success(f"Total Other Costs (Include EHS & Contingency): Rp {total_other_cost:,.0f}")
-        st.info(f"🔹 EHS (0.5% dari Labour+Subcon): Rp {ehs_cost:,.0f}")
-        st.info(f"🔹 Contingency (4% dari Subtotal Manual): Rp {contingency_cost:,.0f}")
-    else:
-        transportation_cost = 0.0
-        meal_cost = 0.0
-        other_cost = 0.0
-        ehs_cost = 0.0
-        contingency_cost = 0.0
-        total_other_cost = 0.0
+st.header("💵 OTHER COSTS (Include EHS and Contingency Otomatis)")
+with st.expander("➕ Input Other Costs Manual"):
+    transportation_cost = st.number_input("Biaya Transportasi (Rp)", min_value=0.0, step=10000.0)
+    meal_cost = st.number_input("Biaya Konsumsi (Rp)", min_value=0.0, step=10000.0)
+    other_cost = st.number_input("Biaya Lain-lain (Rp)", min_value=0.0, step=10000.0)
+
+    # Otomatis hitung EHS dan Contingency
+    ehs_cost = 0.005 * (total_cost_technician + total_subcontractor_cost)
+    subtotal_for_contingency = total_cost_technician + total_subcontractor_cost + transportation_cost + meal_cost + other_cost
+    contingency_cost = 0.04 * subtotal_for_contingency
+
+    total_other_cost = transportation_cost + meal_cost + other_cost + ehs_cost + contingency_cost
+
+    st.success(f"Total Other Costs (Include EHS & Contingency): Rp {total_other_cost:,.0f}")
+    st.info(f"🔹 EHS (0.5% otomatis): Rp {ehs_cost:,.0f}")
+    st.info(f"🔹 Contingency (4% otomatis): Rp {contingency_cost:,.0f}")
+        ## Other Costs Detail
+        other_sheet = workbook.add_worksheet('Other Costs')
+        other_sheet.write_row('A1', ['Komponen', 'Biaya (Rp)'], header_format)
+
+        other_costs_data = [
+            ['Transportasi', transportation_cost],
+            ['Meals', meal_cost],
+            ['Other Expenses', other_cost],
+            ['EHS (0.5%)', ehs_cost],
+            ['Contingency (4%)', contingency_cost]
+        ]
+
+        for idx, (komponen, biaya) in enumerate(other_costs_data, start=2):
+            other_sheet.write(f'A{idx}', komponen, normal_format)
+            other_sheet.write_number(f'B{idx}', biaya, currency_format)
+
+        # Subtotal
+        other_sheet.write('A7', 'Subtotal Other Costs', header_format)
+        other_sheet.write_formula('B7', '=SUM(B2:B6)', currency_format)
+
+        other_sheet.set_column('A:B', 30)
+
 
 # FINAL SUMMARY
 st.header("📈 FINAL SUMMARY")
