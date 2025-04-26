@@ -19,7 +19,6 @@ st.header("🛠️ LABOUR COSTING")
 with st.container():
     st.subheader("📋 Input Dasar Labour Cost")
 
-    # --- Tambahkan fitur USD × Kurs ---
     default_usd = 16.69
     default_kurs = 16000.0
 
@@ -57,7 +56,6 @@ with st.container():
 
     st.caption(f"💡 Biaya default dihitung dari: ${technician_unit_cost_usd:.2f} × {usd_to_idr_rate:.0f} = Rp {default_technician_unit_cost_per_hour_idr:,.0f}")
 
-    # --- Lanjut input PM, ASD, EC ---
     col1, col2 = st.columns(2)
     with col1:
         no_air_cooled = st.number_input("Jumlah Air Cooled Chiller", min_value=0, step=1)
@@ -158,10 +156,8 @@ with st.expander("➕ Tambahkan Other Costs"):
 ## FINAL SUMMARY
 st.header("📈 FINAL SUMMARY")
 
-# Total Cost Calculation
 total_all_cost = total_cost_technician + total_subcontractor_cost + total_other_cost
 
-# Margin Calculation
 if offered_price_idr > 0:
     final_margin_percentage = ((offered_price_idr - total_all_cost) / offered_price_idr) * 100
 else:
@@ -172,7 +168,6 @@ st.write(f"💵 Harga Ditawarkan (Propose Price): Rp {offered_price_idr:,.0f}")
 st.write(f"💰 Total Cost (Labour + Subcon + Other): Rp {total_all_cost:,.0f}")
 st.write(f"📈 Margin Final: {final_margin_percentage:.2f}%")
 
-# Final Check
 if psa_type == "Renewal PSA" and parent_margin is not None:
     if final_margin_percentage >= parent_margin:
         st.success(f"✅ Margin Total ({final_margin_percentage:.2f}%) memenuhi atau lebih besar dari Parent Margin ({parent_margin:.2f}%).")
@@ -183,13 +178,13 @@ elif psa_type == "New PSA":
         st.success(f"✅ Margin Total ({final_margin_percentage:.2f}%) bagus (lebih dari 20%).")
     else:
         st.error(f"⚠️ Margin Total ({final_margin_percentage:.2f}%) kurang dari 20%. Harus dinaikkan!")
+
 # EXPORT TO EXCEL
 st.header("📤 Export Data ke Excel")
 
 def generate_excel():
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        # Sheet 1: Summary
         summary_data = {
             "Item": [
                 "Propose Price (Rp)", 
@@ -211,13 +206,11 @@ def generate_excel():
         df_summary = pd.DataFrame(summary_data)
         df_summary.to_excel(writer, index=False, sheet_name='Summary')
 
-        # Sheet 2: Subcontractor Detail (optional)
         if not df_subcontractor.empty:
             df_subcontractor.to_excel(writer, index=False, sheet_name='Subcontractor Detail')
         
-        writer.save()
-        processed_data = output.getvalue()
-    return processed_data
+    output.seek(0)
+    return output
 
 excel_data = generate_excel()
 
