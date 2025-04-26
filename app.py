@@ -2,53 +2,53 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-# ===============================================
 # PAGE SETUP
 st.set_page_config(page_title="Kalkulator Biaya Full PSA", layout="centered")
 st.title("🧮 Kalkulator Biaya PSA: Labour, Subkontraktor, Other Cost, Spare Parts")
 
-# ===============================================
 # PSA Type Selection
-st.header("\ud83d\udccb PSA TYPE")
-psa_type = st.radio(
-    "Apakah ini New PSA atau Renewal PSA?",
-    ("New PSA", "Renewal PSA")
-)
+st.header("📋 PSA TYPE")
+psa_type = st.radio("Apakah ini New PSA atau Renewal PSA?", ("New PSA", "Renewal PSA"))
 if psa_type == "Renewal PSA":
     parent_margin = st.number_input("Masukkan Parent Margin (%)", min_value=0.0, max_value=100.0, step=0.1, format="%.1f")
 else:
     parent_margin = None
 
-# ===============================================
 # LABOUR COSTING
-st.header("\ud83d\udee0\ufe0f LABOUR COSTING")
+st.header("🛠️ LABOUR COSTING")
+
+offered_price_idr = st.number_input("Harga Ditawarkan (Rp)", min_value=0.0, step=1000.0, format="%.0f")
+
+official_sections = [
+    "Cost Setting (Technician Rate)",
+    "Jumlah Chiller", "Preventive Maintenance (PM)", "Annual Shutdown (ASD)",
+    "Emergency Call (EC)"
+]
 
 technician_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Teknisi (Rp)", value=265600.0, step=1000.0, format="%.0f")
 
 col1, col2 = st.columns(2)
 with col1:
-    no_air_cooled = st.number_input("Jumlah Air Cooled Chiller", min_value=0, step=1, format="%d")
+    no_air_cooled = st.number_input("Jumlah Air Cooled Chiller", min_value=0, step=1)
 with col2:
-    no_water_cooled = st.number_input("Jumlah Water Cooled Chiller", min_value=0, step=1, format="%d")
+    no_water_cooled = st.number_input("Jumlah Water Cooled Chiller", min_value=0, step=1)
 
-hours_per_day_pm = st.number_input("Jam kerja per hari PM", value=8.0, step=0.5, format="%.1f")
-manpower_pm = st.number_input("Jumlah Teknisi PM", min_value=1, step=1, format="%d")
-pm_visits = st.number_input("Jumlah Kunjungan PM", min_value=0, step=1, format="%d")
+hours_per_day_pm = st.number_input("Jam kerja per hari PM", value=8.0, step=0.5)
+manpower_pm = st.number_input("Jumlah Teknisi PM", min_value=1, step=1)
+pm_visits = st.number_input("Jumlah Kunjungan PM", min_value=0, step=1)
 
 base_pm_days = (no_air_cooled * 1) + (no_water_cooled / 2)
 auto_total_pm_days = base_pm_days * pm_visits * manpower_pm
-total_pm_days = st.number_input("Total Hari PM (auto/mau edit manual)", min_value=0.0, value=float(auto_total_pm_days), step=0.5, format="%.1f")
+total_pm_days = st.number_input("Total Hari PM (auto/mau edit manual)", min_value=0.0, value=float(auto_total_pm_days), step=0.5)
 
-asd_visits = st.number_input("Jumlah Kunjungan ASD", min_value=0, step=1, format="%d")
-days_per_visit_asd = st.number_input("Jumlah Hari per Kunjungan ASD", min_value=0.0, value=float(asd_visits), step=0.5, format="%.1f")
-hours_per_day_asd = st.number_input("Jam kerja per hari ASD", value=8.0, step=0.5, format="%.1f")
+asd_visits = st.number_input("Jumlah Kunjungan ASD", min_value=0, step=1)
+days_per_visit_asd = st.number_input("Jumlah Hari per Kunjungan ASD", min_value=0.0, value=float(asd_visits), step=0.5)
+hours_per_day_asd = st.number_input("Jam kerja per hari ASD", value=8.0, step=0.5)
 total_asd_days = asd_visits * days_per_visit_asd
 
-ec_visits = st.number_input("Jumlah Kunjungan EC", min_value=0, step=1, format="%d")
-hours_per_day_ec = st.number_input("Jam kerja per Hari EC", value=6.0, step=0.5, format="%.1f")
+ec_visits = st.number_input("Jumlah Kunjungan EC", min_value=0, step=1)
+hours_per_day_ec = st.number_input("Jam kerja per Hari EC", value=6.0, step=0.5)
 total_ec_days = ec_visits
-
-offered_price_idr = st.number_input("Harga Ditawarkan (Rp)", min_value=0.0, step=1000.0, format="%.0f")
 
 # Hitung Labour Cost
 total_days = total_pm_days + total_asd_days + total_ec_days
@@ -58,30 +58,26 @@ total_cost_technician = total_hours * technician_unit_cost_per_hour_idr
 # Margin Labour
 margin_labour = (offered_price_idr - total_cost_technician) / offered_price_idr * 100 if offered_price_idr != 0 else 0
 
-st.subheader("\ud83d\udcca Labour Costing Margin Analysis")
-st.write(f"\ud83d\udd39 Margin berdasarkan Labour Costing: {margin_labour:.2f}%")
+st.subheader("📊 Labour Costing Margin Analysis")
+st.write(f"🔹 Margin berdasarkan Labour Costing: {margin_labour:.2f}%")
 if psa_type == "Renewal PSA" and parent_margin is not None:
     if margin_labour >= parent_margin:
-        st.success(f"\u2705 Margin Labour ({margin_labour:.2f}%) memenuhi atau lebih besar dari Parent Margin ({parent_margin:.2f}%).")
+        st.success(f"✅ Margin Labour ({margin_labour:.2f}%) memenuhi atau lebih besar dari Parent Margin ({parent_margin:.2f}%).")
     else:
-        st.error(f"\u26a0\ufe0f Margin Labour ({margin_labour:.2f}%) LEBIH KECIL dari Parent Margin ({parent_margin:.2f}%). Harus diperbaiki!")
+        st.error(f"⚠️ Margin Labour ({margin_labour:.2f}%) LEBIH KECIL dari Parent Margin ({parent_margin:.2f}%). Harus diperbaiki!")
 
-# ===============================================
 # SUBCONTRACTOR WORKS
-st.header("\ud83d\udc77 SUBCONTRACTOR WORKS (Optional)")
-
-with st.expander("\u2795 Tambahkan Subcontractor Works"):
+st.header("👷 SUBCONTRACTOR WORKS (Optional)")
+with st.expander("➕ Tambahkan Subcontractor Works"):
     add_subcon = st.checkbox("Centang untuk input biaya Subcontractor", value=False)
     if add_subcon:
         work_types = ["Helper", "Cooling Tower", "Pump", "Controls", "AHU", "Other HVAC Work"]
         subcontractor_details = []
-
         for work in work_types:
-            st.subheader(f"\ud83d\udd39 {work}")
-            days = st.number_input(f"Jumlah Hari {work}", min_value=0.0, step=0.5, format="%.1f", key=f"days_{work}")
-            quantity = st.number_input(f"Quantity untuk {work}", min_value=0, step=1, format="%d", key=f"qty_{work}")
-            cost_per_day = st.number_input(f"Biaya per Hari per Quantity {work} (Rp)", min_value=0.0, step=1000.0, format="%.0f", key=f"cost_{work}")
-
+            st.subheader(f"🔹 {work}")
+            days = st.number_input(f"Jumlah Hari {work}", min_value=0.0, step=0.5, key=f"days_{work}")
+            quantity = st.number_input(f"Quantity untuk {work}", min_value=0, step=1, key=f"qty_{work}")
+            cost_per_day = st.number_input(f"Biaya per Hari per Quantity {work} (Rp)", min_value=0.0, step=1000.0, key=f"cost_{work}")
             total_cost = days * quantity * cost_per_day
             subcontractor_details.append({
                 "Pekerjaan": work,
@@ -90,25 +86,22 @@ with st.expander("\u2795 Tambahkan Subcontractor Works"):
                 "Harga per Hari per Quantity (Rp)": cost_per_day,
                 "Total Cost (Rp)": total_cost
             })
-
         df_subcontractor = pd.DataFrame(subcontractor_details)
         st.dataframe(df_subcontractor)
         total_subcontractor_cost = df_subcontractor["Total Cost (Rp)"].sum()
-        st.success(f"\ud83d\udcb0 Total Subcontractor Cost: Rp {total_subcontractor_cost:,.0f}")
+        st.success(f"💰 Total Subcontractor Cost: Rp {total_subcontractor_cost:,.0f}")
     else:
         total_subcontractor_cost = 0.0
         df_subcontractor = pd.DataFrame()
 
-# ===============================================
 # OTHER COSTS
-st.header("\ud83d\udcb5 OTHER COSTS (Optional)")
-
-with st.expander("\u2795 Tambahkan Other Costs"):
+st.header("💵 OTHER COSTS (Optional)")
+with st.expander("➕ Tambahkan Other Costs"):
     add_other_cost = st.checkbox("Centang untuk input biaya lainnya", value=False)
     if add_other_cost:
-        transportation_cost = st.number_input("Biaya Transportasi (Rp)", min_value=0.0, step=10000.0, format="%.0f")
-        meal_cost = st.number_input("Biaya Konsumsi (Rp)", min_value=0.0, step=10000.0, format="%.0f")
-        other_cost = st.number_input("Biaya Lain-lain (Rp)", min_value=0.0, step=10000.0, format="%.0f")
+        transportation_cost = st.number_input("Biaya Transportasi (Rp)", min_value=0.0, step=10000.0)
+        meal_cost = st.number_input("Biaya Konsumsi (Rp)", min_value=0.0, step=10000.0)
+        other_cost = st.number_input("Biaya Lain-lain (Rp)", min_value=0.0, step=10000.0)
         ehs_cost = 0.005 * offered_price_idr
         contingency_cost = 0.04 * offered_price_idr
         total_other_cost = transportation_cost + meal_cost + other_cost + ehs_cost + contingency_cost
@@ -116,40 +109,33 @@ with st.expander("\u2795 Tambahkan Other Costs"):
     else:
         total_other_cost = 0.0
 
-# ===============================================
 # SPARE PARTS
-st.header("\ud83d\udd27 SPARE PARTS (Optional)")
-
-with st.expander("\u2795 Tambahkan Spare Parts"):
+st.header("🔧 SPARE PARTS (Optional)")
+with st.expander("➕ Tambahkan Spare Parts"):
     add_spare_parts = st.checkbox("Centang untuk input biaya spare parts", value=False)
     if add_spare_parts:
-        spare_parts_cost = st.number_input("Total Biaya Spare Parts (Rp)", min_value=0.0, step=10000.0, format="%.0f")
+        spare_parts_cost = st.number_input("Total Biaya Spare Parts (Rp)", min_value=0.0, step=10000.0)
     else:
         spare_parts_cost = 0.0
 
-# ===============================================
 # FINAL CALCULATION
-
 total_final_cost = total_cost_technician + total_subcontractor_cost + total_other_cost + spare_parts_cost
 margin_final = (offered_price_idr - total_final_cost) / offered_price_idr * 100 if offered_price_idr != 0 else 0
 
-st.header("\ud83d\udcdf FINAL SUMMARY")
+st.header("🧾 FINAL SUMMARY")
 st.metric(label="Total Final Cost (Rp)", value=f"Rp {total_final_cost:,.0f}")
-
 if psa_type == "Renewal PSA":
     if margin_final < 40:
-        st.error(f"\u26a0\ufe0f Margin Final: {margin_final:.2f}% (Di bawah 40%)")
+        st.error(f"⚠️ Margin Final: {margin_final:.2f}% (Di bawah 40%)")
     else:
-        st.success(f"\u2705 Margin Final: {margin_final:.2f}% (Bagus)")
+        st.success(f"✅ Margin Final: {margin_final:.2f}% (Bagus)")
 elif psa_type == "New PSA":
     if margin_final > 20:
-        st.success(f"\u2705 Margin Final: {margin_final:.2f}% (Bagus, > 20%)")
+        st.success(f"✅ Margin Final: {margin_final:.2f}% (Bagus, > 20%)")
     else:
-        st.error(f"\u26a0\ufe0f Margin Final: {margin_final:.2f}% (Kurang dari 20%)")
+        st.error(f"⚠️ Margin Final: {margin_final:.2f}% (Kurang dari 20%)")
 
-# ===============================================
 # EXPORT EXCEL
-
 def to_excel_multi(df_summary, df_subcontractor):
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
@@ -158,7 +144,6 @@ def to_excel_multi(df_summary, df_subcontractor):
             df_subcontractor.to_excel(writer, index=False, sheet_name='Subcontractor Details')
     return output.getvalue()
 
-# Prepare summary data
 df_summary = pd.DataFrame({
     "Keterangan": [
         "PSA Type", "Parent Margin (%)", "Margin Labour (%)", "Total Final Cost (Rp)",
@@ -175,7 +160,7 @@ df_summary = pd.DataFrame({
 })
 
 st.download_button(
-    label="\ud83d\udc45 Download Hasil ke Excel (Multi-Sheet)",
+    label="📥 Download Hasil ke Excel (Multi-Sheet)",
     data=to_excel_multi(df_summary, df_subcontractor),
     file_name="psa_full_costing_summary_highlighted.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
