@@ -95,7 +95,7 @@ with st.container():
     st.write(f"🔹 Total Labour Cost: Rp {total_cost_technician:,.0f}")
     st.caption(f"💡 Perhitungan: Total Jam Kerja ({total_hours:.1f} jam) × Biaya per Jam (Rp {technician_unit_cost_per_hour_idr:,.0f}) = Rp {total_cost_technician:,.0f}")
 
-        offered_price_idr = st.number_input("💵 Harga Ditawarkan (Rp)", min_value=0.0, step=1000.0, format="%.0f")
+    offered_price_idr = st.number_input("💵 Harga Ditawarkan (Rp)", min_value=0.0, step=1000.0, format="%.0f")
 
     margin_labour = (offered_price_idr - total_cost_technician) / offered_price_idr * 100 if offered_price_idr != 0 else 0
     st.write(f"🔹 Margin Labour Costing: {margin_labour:.2f}%")
