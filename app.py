@@ -3,12 +3,12 @@ import pandas as pd
 from io import BytesIO
 
 # Set page config
-st.set_page_config(page_title="Kalkulator Biaya PM, ASD, EC + Subcontractor", layout="centered")
+st.set_page_config(page_title="Kalkulator Biaya PM, ASD, EC, Subkontraktor, dan Spare Parts", layout="centered")
 st.title("🧮 Kalkulator Biaya PM, ASD, EC, Subkontraktor, Spare Parts, dan Other Cost (Rupiah)")
 
 # ===============================================
 st.header("1. Cost Setting (Rupiah)")
-technician_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Teknisi (Rp)", value=267040.0, step=1000.0, format="%.0f")
+technician_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Teknisi (Rp)", value=265600.0, step=1000.0, format="%.0f")
 
 # ===============================================
 st.header("2. Jumlah Chiller")
@@ -65,7 +65,6 @@ offered_price_idr = st.number_input("Harga yang Ditawarkan (Rp)", min_value=0.0,
 # ===============================================
 # Subcontractor Work
 st.header("7. Subcontractor Works (Optional)")
-
 with st.expander("➕ Tambahkan Subcontractor Works"):
     add_subcon = st.checkbox("Centang untuk input biaya Subcontractor", value=False)
     if add_subcon:
@@ -94,7 +93,6 @@ with st.expander("➕ Tambahkan Subcontractor Works"):
 # ===============================================
 # Other Cost
 st.header("8. Other Cost (Optional)")
-
 with st.expander("➕ Tambahkan Other Cost (Transport, Konsumsi, EHS)"):
     add_other_cost = st.checkbox("Centang untuk input biaya lainnya", value=False)
     if add_other_cost:
@@ -115,7 +113,6 @@ with st.expander("➕ Tambahkan Other Cost (Transport, Konsumsi, EHS)"):
 # ===============================================
 # Spare Parts
 st.header("9. Spare Parts (Optional)")
-
 with st.expander("➕ Tambahkan Biaya Spare Parts"):
     add_spare_parts = st.checkbox("Centang untuk input biaya spare parts", value=False)
     if add_spare_parts:
@@ -139,4 +136,14 @@ else:
     st.success(f"✅ Margin Final: {margin_final:.2f}% (Bagus)")
 
 # ===============================================
-# End of App
+# Analisis Price vs Cost
+st.header("🧩 Analisis Price vs Cost")
+if margin_final >= 40 and offered_price_idr >= total_final_cost:
+    st.success("✅ Harga dan Margin sudah BAGUS. Siap lanjut ke offering atau negosiasi.")
+elif margin_final < 40 and offered_price_idr >= total_final_cost:
+    st.warning("⚠️ Harga cukup, tapi Margin kurang dari 40%. Perlu cek ulang Cost atau Price.")
+elif offered_price_idr < total_final_cost:
+    st.error("❌ Harga yang ditawarkan LEBIH KECIL dari Total Cost. HARUS dinaikkan sebelum submit.")
+else:
+    st.warning("⚠️ Perlu review ulang antara Harga dan Cost sebelum lanjut.")
+
