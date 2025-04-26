@@ -109,19 +109,30 @@ with st.expander("➕ Tambahkan Subcontractor Works"):
     if add_subcon:
         work_types = ["Helper", "Cooling Tower", "Pump", "Controls", "AHU", "Other HVAC Work"]
         subcontractor_details = []
+        default_cost_per_day = 700000  # 👈 Harga fix Rp 700.000 per hari per pekerja
+
         for work in work_types:
             st.subheader(f"🔹 {work}")
-            days = st.number_input(f"Jumlah Hari pekerjaan {work}", min_value=0.0, step=0.5, key=f"days_{work}")
-            jumlah = st.number_input(f"jumlah pekerja {work}", min_value=0, step=1, key=f"qty_{work}")
-            cost_per_day = st.number_input(f"Biaya satuan pekerjaan {work} (Rp)", min_value=0.0, step=1000.0, key=f"cost_{work}")
+            
+            if work == "Helper":
+                days = total_pm_days  # 👈 Jumlah hari Helper otomatis ambil dari Labour PM Days
+                st.info(f"Jumlah Hari Helper mengikuti Total Hari PM: {days:.1f} hari")
+            else:
+                days = st.number_input(f"Jumlah Hari pekerjaan {work}", min_value=0.0, step=0.5, key=f"days_{work}")
+
+            jumlah = st.number_input(f"Jumlah Pekerja {work}", min_value=0, step=1, key=f"qty_{work}")
+            cost_per_day = default_cost_per_day  # 👈 Harga satuan fixed 700.000
+
             total_cost = days * jumlah * cost_per_day
+
             subcontractor_details.append({
                 "Pekerjaan": work,
                 "Jumlah Hari": days,
-                "jumlah": jumlah,
-                "Harga per Hari per jumlah (Rp)": cost_per_day,
+                "Jumlah Pekerja": jumlah,
+                "Harga per Hari per Pekerja (Rp)": cost_per_day,
                 "Total Cost (Rp)": total_cost
             })
+
         df_subcontractor = pd.DataFrame(subcontractor_details)
         st.dataframe(df_subcontractor)
         total_subcontractor_cost = df_subcontractor["Total Cost (Rp)"].sum()
