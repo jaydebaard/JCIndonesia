@@ -221,6 +221,31 @@ elif psa_type == "New PSA":
     else:
         st.error(f"⚠️ Margin Total ({final_margin_percentage:.2f}%) kurang dari 20%. Harus dinaikkan!")
 
+# FINAL PRESENTATION TABLE
+st.header("📋 Ringkasan Semua Komponen Cost & Margin")
+
+final_summary_table = pd.DataFrame({
+    "Komponen": [
+        "Harga Ditawarkan (Propose Price)",
+        "Total Labour Cost",
+        "Total Subcontractor Cost",
+        "Total Other Cost",
+        "Total Keseluruhan Cost",
+        "Margin Final (%)"
+    ],
+    "Nilai": [
+        offered_price_idr,
+        total_cost_technician,
+        total_subcontractor_cost,
+        total_other_cost,
+        total_all_cost,
+        f"{final_margin_percentage:.2f}%"
+    ]
+})
+
+st.dataframe(final_summary_table)
+
+
 # EXPORT TO EXCEL
 st.header("📤 Export Data ke Excel")
 
