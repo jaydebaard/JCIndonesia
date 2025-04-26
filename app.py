@@ -24,11 +24,9 @@ hours_per_day_pm = st.number_input("Jam kerja per hari untuk PM", value=8.0, ste
 manpower_pm = st.number_input("Jumlah Teknisi untuk PM", min_value=1, step=1, format="%d")
 pm_visits = st.number_input("Jumlah Kunjungan PM", min_value=0, step=1, format="%d")
 
-# Hitung otomatis Total Hari PM
 base_pm_days = (no_air_cooled * 1) + (no_water_cooled / 2)
 auto_total_pm_days = base_pm_days * pm_visits * manpower_pm
 
-# Input Total Hari PM (editable manual)
 total_pm_days = st.number_input(
     "Total Hari PM (hasil hitung otomatis dari chiller × visit × manpower, bisa diedit manual)",
     min_value=0.0,
@@ -36,7 +34,6 @@ total_pm_days = st.number_input(
     step=0.5,
     format="%.1f"
 )
-
 st.success(f"Total Hari PM: {total_pm_days:,.1f} hari")
 
 # ===============================================
@@ -68,7 +65,6 @@ total_cost_technician = total_hours * technician_unit_cost_per_hour_idr
 st.header("6. Harga Yang Ditawarkan")
 offered_price_idr = st.number_input("Harga yang Ditawarkan (Rp)", min_value=0.0, step=1000.0, format="%.0f")
 
-# Margin dari harga yang ditawarkan (teknisi saja)
 margin = (offered_price_idr - total_cost_technician) / offered_price_idr * 100 if offered_price_idr != 0 else 0
 
 # ===============================================
@@ -81,11 +77,10 @@ st.write(f"Total Hours: {total_hours:,.1f} jam")
 st.write(f"Total Days: {total_days:,.1f} hari")
 
 st.write("---")
-
 st.subheader("💵 Price vs Cost (Teknisi)")
 st.write(f"**Harga yang Ditawarkan (Price): Rp {offered_price_idr:,.0f}**")
 st.write(f"**Total Cost Teknisi: Rp {total_cost_technician:,.0f}**")
-st.caption(f"Perhitungan: {total_hours:,.1f} jam x Rp {technician_unit_cost_per_hour_idr:,.0f} per jam = Rp {total_cost_technician:,.0f}")
+st.caption(f"Perhitungan: {total_hours:,.1f} jam x Rp {technician_unit_cost_per_hour_idr:,.0f} per jam")
 
 if margin < 40:
     st.error(f"⚠️ Margin (Hanya dari Teknisi): {margin:.2f}% (Kurang dari 40%)")
@@ -93,12 +88,12 @@ else:
     st.success(f"✅ Margin (Hanya dari Teknisi): {margin:.2f}%")
 
 # ===============================================
-# Bagian Baru - Subcontractor Work (Multi Entry)
+# Subcontractor Work (Multi Entry) Fix 8 Jam
 st.header("7. Subcontractor Works (Multi Entry)")
 
 st.subheader("Helper Work")
 helper_days = st.number_input("Jumlah Hari Helper", min_value=0.0, step=0.5, format="%.1f")
-helper_hours_per_day = st.number_input("Jam kerja per Hari Helper", min_value=0.0, step=0.5, format="%.1f")
+helper_hours_per_day = st.number_input("Jam kerja per Hari Helper", min_value=0.0, value=8.0, step=0.5, format="%.1f")
 helper_cost_per_hour = st.number_input("Biaya per Jam Helper (Rp)", min_value=0.0, value=62500.0, step=1000.0, format="%.0f")
 helper_total_hours = helper_days * helper_hours_per_day
 helper_total_cost = helper_total_hours * helper_cost_per_hour
@@ -107,7 +102,7 @@ st.divider()
 
 st.subheader("Condenser Cleaning Work")
 cleaning_days = st.number_input("Jumlah Hari Condenser Cleaning", min_value=0.0, step=0.5, format="%.1f")
-cleaning_hours_per_day = st.number_input("Jam kerja per Hari Condenser Cleaning", min_value=0.0, step=0.5, format="%.1f")
+cleaning_hours_per_day = st.number_input("Jam kerja per Hari Condenser Cleaning", min_value=0.0, value=8.0, step=0.5, format="%.1f")
 cleaning_cost_per_hour = st.number_input("Biaya per Jam Condenser Cleaning (Rp)", min_value=0.0, value=62500.0, step=1000.0, format="%.0f")
 cleaning_total_hours = cleaning_days * cleaning_hours_per_day
 cleaning_total_cost = cleaning_total_hours * cleaning_cost_per_hour
@@ -116,30 +111,26 @@ st.divider()
 
 st.subheader("Other Subcontractor Work")
 other_subcon_days = st.number_input("Jumlah Hari Other Subcon", min_value=0.0, step=0.5, format="%.1f")
-other_subcon_hours_per_day = st.number_input("Jam kerja per Hari Other Subcon", min_value=0.0, step=0.5, format="%.1f")
+other_subcon_hours_per_day = st.number_input("Jam kerja per Hari Other Subcon", min_value=0.0, value=8.0, step=0.5, format="%.1f")
 other_subcon_cost_per_hour = st.number_input("Biaya per Jam Other Subcon (Rp)", min_value=0.0, value=0.0, step=1000.0, format="%.0f")
 other_subcon_total_hours = other_subcon_days * other_subcon_hours_per_day
 other_subcon_total_cost = other_subcon_total_hours * other_subcon_cost_per_hour
 
-# ===============================================
 # Total Subcontractor Cost
 total_subcontractor_cost = helper_total_cost + cleaning_total_cost + other_subcon_total_cost
 
 st.header("🧾 Total Subcontractor Works Cost")
 st.write(f"💰 **Total Subcontractor Cost: Rp {total_subcontractor_cost:,.0f}**")
 
-# Tabel Ringkasan Subcontractor
+# Tabel Subcontractor
 st.header("📋 Ringkasan Biaya Subcontractor")
-
 subcontractor_data = {
     "Kategori": ["Helper", "Condenser Cleaning", "Other"],
     "Total Jam Kerja (jam)": [helper_total_hours, cleaning_total_hours, other_subcon_total_hours],
     "Biaya per Jam (Rp)": [helper_cost_per_hour, cleaning_cost_per_hour, other_subcon_cost_per_hour],
     "Total Biaya (Rp)": [helper_total_cost, cleaning_total_cost, other_subcon_total_cost],
 }
-
 df_subcontractor = pd.DataFrame(subcontractor_data)
-
 st.dataframe(df_subcontractor.style.format({
     "Total Jam Kerja (jam)": "{:.1f}",
     "Biaya per Jam (Rp)": "Rp {:,.0f}",
@@ -147,9 +138,8 @@ st.dataframe(df_subcontractor.style.format({
 }), use_container_width=True)
 
 # ===============================================
-# Bagian Baru - Other Cost
+# Other Cost
 st.header("8. Other Cost (Rupiah)")
-
 transportation_cost = st.number_input("Biaya Transportasi (Rp)", min_value=0.0, step=10000.0, format="%.0f")
 meal_cost = st.number_input("Biaya Konsumsi (Rp)", min_value=0.0, step=10000.0, format="%.0f")
 contingency_cost = st.number_input("Contingency Fee (Rp)", min_value=0.0, step=10000.0, format="%.0f")
@@ -157,63 +147,35 @@ ehs_cost = st.number_input("Biaya EHS (Rp)", min_value=0.0, step=10000.0, format
 other_cost = st.number_input("Biaya Lain-lain (Rp)", min_value=0.0, step=10000.0, format="%.0f")
 
 total_other_cost = transportation_cost + meal_cost + contingency_cost + ehs_cost + other_cost
-
 st.success(f"Total Other Cost: Rp {total_other_cost:,.0f}")
 
 # ===============================================
-# Total Final Cost & Margin Revisi
-total_final_cost = total_cost_technician + total_subcontractor_cost + total_other_cost
-
+# Final Cost Summary
 st.header("🧾 Ringkasan Final Cost & Margin Revisi")
-st.write(f"💰 **Total Final Cost: Rp {total_final_cost:,.0f}**")
-
+total_final_cost = total_cost_technician + total_subcontractor_cost + total_other_cost
 margin_final = (offered_price_idr - total_final_cost) / offered_price_idr * 100 if offered_price_idr != 0 else 0
 
+st.write(f"💰 **Total Final Cost: Rp {total_final_cost:,.0f}**")
 if margin_final < 40:
-    st.error(f"⚠️ Margin (Revisi, berdasarkan total cost): {margin_final:.2f}% (Kurang dari 40%)")
+    st.error(f"⚠️ Margin (Final): {margin_final:.2f}%")
 else:
-    st.success(f"✅ Margin (Revisi, berdasarkan total cost): {margin_final:.2f}%")
+    st.success(f"✅ Margin (Final): {margin_final:.2f}%")
 
 # ===============================================
-# Download Data Excel
-data = {
+# Download Excel
+summary_data = {
     "Item": [
-        "Total PM Days",
-        "Total ASD Days",
-        "Total EC Days",
-        "Total Hours",
-        "Total Days",
-        "Total Cost Teknisi (Rp)",
-        "Total Cost Subcontractor (Helper) (Rp)",
-        "Total Cost Subcontractor (Condenser Cleaning) (Rp)",
-        "Total Cost Subcontractor (Other) (Rp)",
-        "Total Subcontractor Cost (Rp)",
-        "Total Other Cost (Rp)",
-        "Total Final Cost (Rp)",
-        "Harga Ditawarkan (Rp)",
-        "Margin (%) dari Teknisi",
-        "Margin (%) dari Total Cost",
+        "Total PM Days", "Total ASD Days", "Total EC Days", "Total Hours", "Total Days",
+        "Total Cost Teknisi (Rp)", "Total Cost Subcontractor (Rp)", "Total Other Cost (Rp)",
+        "Total Final Cost (Rp)", "Harga Ditawarkan (Rp)", "Margin (%) Final"
     ],
     "Value": [
-        total_pm_days,
-        total_asd_days,
-        total_ec_days,
-        total_hours,
-        total_days,
-        total_cost_technician,
-        helper_total_cost,
-        cleaning_total_cost,
-        other_subcon_total_cost,
-        total_subcontractor_cost,
-        total_other_cost,
-        total_final_cost,
-        offered_price_idr,
-        margin,
-        margin_final,
+        total_pm_days, total_asd_days, total_ec_days, total_hours, total_days,
+        total_cost_technician, total_subcontractor_cost, total_other_cost,
+        total_final_cost, offered_price_idr, margin_final
     ],
 }
-
-df_result = pd.DataFrame(data)
+df_summary = pd.DataFrame(summary_data)
 
 def to_excel(df):
     output = BytesIO()
@@ -224,7 +186,7 @@ def to_excel(df):
 
 st.download_button(
     label="📥 Download Hasil Breakdown ke Excel (Rupiah)",
-    data=to_excel(df_result),
+    data=to_excel(df_summary),
     file_name="kalkulator_biaya_pm_asd_ec_subcon_other_idr.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 )
