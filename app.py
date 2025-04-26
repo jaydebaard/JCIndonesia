@@ -111,8 +111,8 @@ with st.expander("➕ Tambahkan Subcontractor Works"):
         subcontractor_details = []
         for work in work_types:
             st.subheader(f"🔹 {work}")
-            days = st.number_input(f"Jumlah Hari {work}", min_value=0.0, step=0.5, key=f"days_{work}")
-            quantity = st.number_input(f"Quantity untuk {work}", min_value=0, step=1, key=f"qty_{work}")
+            days = st.number_input(f"Jumlah Hari pekerjaan {work}", min_value=0.0, step=0.5, key=f"days_{work}")
+            quantity = st.number_input(f"Quantity pekerja {work}", min_value=0, step=1, key=f"qty_{work}")
             cost_per_day = st.number_input(f"Biaya per Hari per Quantity {work} (Rp)", min_value=0.0, step=1000.0, key=f"cost_{work}")
             total_cost = days * quantity * cost_per_day
             subcontractor_details.append({
