@@ -38,10 +38,8 @@ with st.container():
     col_usd, col_kurs = st.columns(2)
     with col_usd:
         technician_unit_cost_usd = st.number_input("Harga per Jam Teknisi (USD)", value=st.session_state.technician_unit_cost_usd, step=0.01, format="%.2f", key="input_usd")
-        st.session_state.technician_unit_cost_usd = technician_unit_cost_usd
     with col_kurs:
         usd_to_idr_rate = st.number_input("Kurs USD ke IDR", value=st.session_state.usd_to_idr_rate, step=100.0, format="%.0f", key="input_kurs")
-        st.session_state.usd_to_idr_rate = usd_to_idr_rate
 
     default_technician_unit_cost_per_hour_idr = technician_unit_cost_usd * usd_to_idr_rate
     technician_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Teknisi (Rp)", min_value=0.0, value=default_technician_unit_cost_per_hour_idr, step=1000.0, format="%.0f", key="input_cost_idr")
@@ -87,14 +85,13 @@ with st.container():
     st.write(f"🔹 Total Jam Kerja Labour: {total_hours:.1f} jam")
     st.write(f"🔹 Biaya per Jam Teknisi: Rp {technician_unit_cost_per_hour_idr:,.0f}")
     st.write(f"🔹 Total Labour Cost: Rp {total_cost_technician:,.0f}")
-    st.caption(f"💡 Perhitungan: (Total Jam × Biaya per Jam) = Total Labour Cost")
 
     offered_price_idr = st.number_input("💵 Harga Ditawarkan (Rp)", min_value=0.0, step=1000.0, format="%.0f")
 
     margin_labour = (offered_price_idr - total_cost_technician) / offered_price_idr * 100 if offered_price_idr != 0 else 0
     st.write(f"🔹 Margin Labour Costing: {margin_labour:.2f}%")
 
-# (sambung subcontractor, other cost, final summary, export excel di lanjutannya)
+# (lanjut Subcontractor, Other Cost, Final Summary, Export Excel)
 
 # SUBCONTRACTOR WORKS
 st.header("👷 SUBCONTRACTOR WORKS (Optional)")
@@ -164,28 +161,6 @@ with st.expander("➕ Input Other Costs Manual"):
     st.success(f"Total Other Costs (Include EHS & Contingency): Rp {total_other_cost:,.0f}")
     st.info(f"🔹 EHS (0.5% otomatis): Rp {ehs_cost:,.0f}")
     st.info(f"🔹 Contingency (4% otomatis): Rp {contingency_cost:,.0f}")
-        ## Other Costs Detail
-        other_sheet = workbook.add_worksheet('Other Costs')
-        other_sheet.write_row('A1', ['Komponen', 'Biaya (Rp)'], header_format)
-
-        other_costs_data = [
-            ['Transportasi', transportation_cost],
-            ['Meals', meal_cost],
-            ['Other Expenses', other_cost],
-            ['EHS (0.5%)', ehs_cost],
-            ['Contingency (4%)', contingency_cost]
-        ]
-
-        for idx, (komponen, biaya) in enumerate(other_costs_data, start=2):
-            other_sheet.write(f'A{idx}', komponen, normal_format)
-            other_sheet.write_number(f'B{idx}', biaya, currency_format)
-
-        # Subtotal
-        other_sheet.write('A7', 'Subtotal Other Costs', header_format)
-        other_sheet.write_formula('B7', '=SUM(B2:B6)', currency_format)
-
-        other_sheet.set_column('A:B', 30)
-
 
 # FINAL SUMMARY
 st.header("📈 FINAL SUMMARY")
@@ -237,28 +212,27 @@ def generate_excel():
         percent_format = workbook.add_format({'num_format': '0.00%', 'border': 1})
         normal_format = workbook.add_format({'border': 1})
 
-        ## Summary
+        # Summary
         summary_sheet = workbook.add_worksheet('Summary')
         summary_sheet.write('A1', 'Nama Proyek', header_format)
         summary_sheet.write('B1', project_name, normal_format)
-
-        summary_sheet.write('A3', 'Komponen', header_format)
-        summary_sheet.write('B3', 'Nilai (Rp)', header_format)
-        summary_sheet.write('A4', 'Harga Ditawarkan', normal_format)
-        summary_sheet.write_number('B4', offered_price_idr, currency_format)
-        summary_sheet.write('A5', 'Total Labour Cost', normal_format)
-        summary_sheet.write_number('B5', total_cost_technician, currency_format)
-        summary_sheet.write('A6', 'Total Subcontractor Cost', normal_format)
-        summary_sheet.write_number('B6', total_subcontractor_cost, currency_format)
-        summary_sheet.write('A7', 'Total Other Cost', normal_format)
-        summary_sheet.write_number('B7', total_other_cost, currency_format)
+        summary_sheet.write_row('A3', ['Komponen', 'Nilai (Rp)'], header_format)
+        summary_data = [
+            ('Harga Ditawarkan', offered_price_idr),
+            ('Total Labour Cost', total_cost_technician),
+            ('Total Subcontractor Cost', total_subcontractor_cost),
+            ('Total Other Cost', total_other_cost)
+        ]
+        for idx, (label, value) in enumerate(summary_data, start=4):
+            summary_sheet.write(f'A{idx}', label, normal_format)
+            summary_sheet.write_number(f'B{idx}', value, currency_format)
         summary_sheet.write('A8', 'Total Keseluruhan Cost', header_format)
         summary_sheet.write_formula('B8', '=SUM(B5:B7)', currency_format)
         summary_sheet.write('A9', 'Margin Final (%)', header_format)
         summary_sheet.write_formula('B9', '=(B4-B8)/B4', percent_format)
         summary_sheet.set_column('A:B', 25)
 
-        ## Labour Detail
+        # Labour Detail
         labour_sheet = workbook.add_worksheet('Labour Detail')
         labour_sheet.write_row('A1', ['Kategori', 'Jumlah Hari', 'Jam per Hari', 'Total Jam', 'Biaya per Jam', 'Total Cost'], header_format)
 
@@ -279,19 +253,34 @@ def generate_excel():
 
         labour_sheet.set_column('A:F', 20)
 
-        ## Subcontractor Detail
+        # Subcontractor Detail
         if not df_subcontractor.empty:
             subcon_sheet = workbook.add_worksheet('Subcontractor Detail')
             subcon_sheet.write_row('A1', ['Pekerjaan', 'Jumlah Hari', 'Jumlah Pekerja', 'Harga per Hari', 'Total Cost'], header_format)
-
             for idx, row in enumerate(df_subcontractor.itertuples(index=False), start=2):
                 subcon_sheet.write(f'A{idx}', row[0], normal_format)
                 subcon_sheet.write_number(f'B{idx}', row[1], normal_format)
                 subcon_sheet.write_number(f'C{idx}', row[2], normal_format)
                 subcon_sheet.write_number(f'D{idx}', row[3], currency_format)
                 subcon_sheet.write_formula(f'E{idx}', f'=B{idx}*C{idx}*D{idx}', currency_format)
-
             subcon_sheet.set_column('A:E', 22)
+
+        # Other Costs Detail
+        other_sheet = workbook.add_worksheet('Other Costs')
+        other_sheet.write_row('A1', ['Komponen', 'Biaya (Rp)'], header_format)
+        other_costs_data = [
+            ('Transportasi', transportation_cost),
+            ('Meals', meal_cost),
+            ('Other Expenses', other_cost),
+            ('EHS (0.5%)', ehs_cost),
+            ('Contingency (4%)', contingency_cost)
+        ]
+        for idx, (komponen, biaya) in enumerate(other_costs_data, start=2):
+            other_sheet.write(f'A{idx}', komponen, normal_format)
+            other_sheet.write_number(f'B{idx}', biaya, currency_format)
+        other_sheet.write('A7', 'Subtotal Other Costs', header_format)
+        other_sheet.write_formula('B7', '=SUM(B2:B6)', currency_format)
+        other_sheet.set_column('A:B', 30)
 
     output.seek(0)
     return output
