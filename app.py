@@ -8,7 +8,7 @@ st.title("🧮 Kalkulator Biaya PM, ASD, EC, Subkontraktor, Spare Parts, dan Oth
 
 # ===============================================
 st.header("1. Cost Setting (Rupiah)")
-technician_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Teknisi (Rp)", value=265600.0, step=1000.0, format="%.0f")
+technician_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Teknisi (Rp)", value=267040.0, step=1000.0, format="%.0f")
 
 # ===============================================
 st.header("2. Jumlah Chiller")
