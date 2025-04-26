@@ -104,5 +104,55 @@ with st.container():
         else:
             st.error(f"⚠️ Margin Labour ({margin_labour:.2f}%) kurang dari 20%. Harus dinaikkan!")
 
-# lanjut subcontractor works, other cost, spare parts, dan final summary (seperti kode kamu tadi)
+# SUBCONTRACTOR WORKS
+st.header("👷 SUBCONTRACTOR WORKS (Optional)")
+with st.expander("➕ Tambahkan Subcontractor Works"):
+    add_subcon = st.checkbox("Centang untuk input biaya Subcontractor", value=False)
+    if add_subcon:
+        work_types = ["Helper", "Cooling Tower", "Pump", "Controls", "AHU", "Other HVAC Work"]
+        subcontractor_details = []
+        for work in work_types:
+            st.subheader(f"🔹 {work}")
+            days = st.number_input(f"Jumlah Hari {work}", min_value=0.0, step=0.5, key=f"days_{work}")
+            quantity = st.number_input(f"Quantity untuk {work}", min_value=0, step=1, key=f"qty_{work}")
+            cost_per_day = st.number_input(f"Biaya per Hari per Quantity {work} (Rp)", min_value=0.0, step=1000.0, key=f"cost_{work}")
+            total_cost = days * quantity * cost_per_day
+            subcontractor_details.append({
+                "Pekerjaan": work,
+                "Jumlah Hari": days,
+                "Quantity": quantity,
+                "Harga per Hari per Quantity (Rp)": cost_per_day,
+                "Total Cost (Rp)": total_cost
+            })
+        df_subcontractor = pd.DataFrame(subcontractor_details)
+        st.dataframe(df_subcontractor)
+        total_subcontractor_cost = df_subcontractor["Total Cost (Rp)"].sum()
+        st.success(f"💰 Total Subcontractor Cost: Rp {total_subcontractor_cost:,.0f}")
+    else:
+        total_subcontractor_cost = 0.0
+        df_subcontractor = pd.DataFrame()
 
+# OTHER COSTS
+st.header("💵 OTHER COSTS (Optional)")
+with st.expander("➕ Tambahkan Other Costs"):
+    add_other_cost = st.checkbox("Centang untuk input biaya lainnya", value=False)
+    if add_other_cost:
+        transportation_cost = st.number_input("Biaya Transportasi (Rp)", min_value=0.0, step=10000.0)
+        meal_cost = st.number_input("Biaya Konsumsi (Rp)", min_value=0.0, step=10000.0)
+        other_cost = st.number_input("Biaya Lain-lain (Rp)", min_value=0.0, step=10000.0)
+        ehs_cost = 0.005 * (total_cost_technician + total_subcontractor_cost)
+        subtotal_for_contingency = total_cost_technician + total_subcontractor_cost + transportation_cost + meal_cost + other_cost
+        contingency_cost = 0.04 * subtotal_for_contingency
+        total_other_cost = transportation_cost + meal_cost + other_cost + ehs_cost + contingency_cost
+        st.success(f"Total Other Costs (Include EHS & Contingency): Rp {total_other_cost:,.0f}")
+        st.info(f"🔹 EHS (0.5% dari Labour+Subcon): Rp {ehs_cost:,.0f}")
+        st.info(f"🔹 Contingency (4% dari Subtotal Manual): Rp {contingency_cost:,.0f}")
+    else:
+        transportation_cost = 0.0
+        meal_cost = 0.0
+        other_cost = 0.0
+        ehs_cost = 0.0
+        contingency_cost = 0.0
+        total_other_cost = 0.0
+
+# (Final Calculation dan Export tetap sama)
