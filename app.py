@@ -232,44 +232,101 @@ def generate_excel():
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         workbook = writer.book
+        
+        # Define formats
+        header_format = workbook.add_format({'bold': True, 'bg_color': '#D9E1F2', 'border': 1})
+        currency_format = workbook.add_format({'num_format': '#,##0', 'border': 1})
+        percent_format = workbook.add_format({'num_format': '0.00%', 'border': 1})
+        normal_format = workbook.add_format({'border': 1})
 
-        # Summary Sheet
-        summary_data = [
-            ["Nama Proyek", project_name],
-            [],
-            ["Komponen", "Nilai (Rp)"],
-            ["Harga Ditawarkan (Propose Price)", offered_price_idr],
-            ["Total Labour Cost", total_cost_technician],
-            ["Total Subcontractor Cost", total_subcontractor_cost],
-            ["Total Other Cost", total_other_cost],
-            ["Total Keseluruhan Cost", "=SUM(B5:B7)"],
-            ["Margin Final (%)", "=(B4-B8)/B4"]
+        ## 1. Summary Sheet
+        summary_sheet = workbook.add_worksheet('Summary')
+        summary_sheet.write('A1', 'Nama Proyek', header_format)
+        summary_sheet.write('B1', project_name, normal_format)
+
+        summary_sheet.write('A3', 'Komponen', header_format)
+        summary_sheet.write('B3', 'Nilai (Rp)', header_format)
+        summary_sheet.write('A4', 'Harga Ditawarkan', normal_format)
+        summary_sheet.write_number('B4', offered_price_idr, currency_format)
+        summary_sheet.write('A5', 'Total Labour Cost', normal_format)
+        summary_sheet.write_number('B5', total_cost_technician, currency_format)
+        summary_sheet.write('A6', 'Total Subcontractor Cost', normal_format)
+        summary_sheet.write_number('B6', total_subcontractor_cost, currency_format)
+        summary_sheet.write('A7', 'Total Other Cost', normal_format)
+        summary_sheet.write_number('B7', total_other_cost, currency_format)
+
+        summary_sheet.write('A8', 'Total Keseluruhan Cost', header_format)
+        summary_sheet.write_formula('B8', '=SUM(B5:B7)', currency_format)
+
+        summary_sheet.write('A9', 'Margin Final (%)', header_format)
+        summary_sheet.write_formula('B9', '=(B4-B8)/B4', percent_format)
+
+        summary_sheet.set_column('A:B', 25)
+
+        ## 2. Labour Detail Sheet
+        labour_sheet = workbook.add_worksheet('Labour Detail')
+        labour_sheet.write_row('A1', ['Kategori', 'Jumlah Hari', 'Jam per Hari', 'Total Jam', 'Biaya per Jam', 'Total Cost'], header_format)
+
+        # Data Labour Detail
+        labour_rows = [
+            ['PM', total_pm_days, hours_per_day_pm],
+            ['ASD', total_asd_days, hours_per_day_asd],
+            ['EC', total_ec_days, hours_per_day_ec],
         ]
-        df_summary = pd.DataFrame(summary_data)
-        df_summary.to_excel(writer, index=False, header=False, sheet_name='Summary')
 
-        # Labour Sheet (Detail)
-        labour_detail = [
-            ["Kategori", "Jumlah Hari", "Jam per Hari", "Total Jam", "Biaya per Jam", "Total Cost"],
-            ["PM", total_pm_days, hours_per_day_pm, total_pm_days * hours_per_day_pm, technician_unit_cost_per_hour_idr, total_pm_days * hours_per_day_pm * technician_unit_cost_per_hour_idr],
-            ["ASD", total_asd_days, hours_per_day_asd, total_asd_days * hours_per_day_asd, technician_unit_cost_per_hour_idr, total_asd_days * hours_per_day_asd * technician_unit_cost_per_hour_idr],
-            ["EC", total_ec_days, hours_per_day_ec, total_ec_days * hours_per_day_ec, technician_unit_cost_per_hour_idr, total_ec_days * hours_per_day_ec * technician_unit_cost_per_hour_idr]
-        ]
-        df_labour = pd.DataFrame(labour_detail)
-        df_labour.to_excel(writer, index=False, header=False, sheet_name='Labour Detail')
+        for idx, (kategori, hari, jam) in enumerate(labour_rows, start=2):
+            labour_sheet.write(f'A{idx}', kategori, normal_format)
+            labour_sheet.write_number(f'B{idx}', hari, normal_format)
+            labour_sheet.write_number(f'C{idx}', jam, normal_format)
+            labour_sheet.write_formula(f'D{idx}', f'=B{idx}*C{idx}', normal_format)
+            labour_sheet.write_number(f'E{idx}', technician_unit_cost_per_hour_idr, currency_format)
+            labour_sheet.write_formula(f'F{idx}', f'=D{idx}*E{idx}', currency_format)
 
-        # Subcontractor Sheet
+        labour_sheet.set_column('A:F', 20)
+
+        ## 3. Subcontractor Detail Sheet
         if not df_subcontractor.empty:
-            df_subcontractor.to_excel(writer, index=False, sheet_name='Subcontractor Detail')
+            subcon_sheet = workbook.add_worksheet('Subcontractor Detail')
+            subcon_sheet.write_row('A1', ['Pekerjaan', 'Jumlah Hari', 'Jumlah Pekerja', 'Harga per Hari', 'Total Cost'], header_format)
+
+            for idx, row in enumerate(df_subcontractor.itertuples(index=False), start=2):
+                subcon_sheet.write(f'A{idx}', row[0], normal_format)  # Pekerjaan
+                subcon_sheet.write_number(f'B{idx}', row[1], normal_format)  # Jumlah Hari
+                subcon_sheet.write_number(f'C{idx}', row[2], normal_format)  # Jumlah Pekerja
+                subcon_sheet.write_number(f'D{idx}', row[3], currency_format)  # Harga per Hari
+                subcon_sheet.write_formula(f'E{idx}', f'=B{idx}*C{idx}*D{idx}', currency_format)  # Total Cost
+
+            subcon_sheet.set_column('A:E', 22)
+
+        ## 4. Other Costs Sheet
+        other_sheet = workbook.add_worksheet('Other Costs')
+        other_sheet.write_row('A1', ['Komponen', 'Biaya (Rp)'], header_format)
+        
+        other_costs_data = [
+            ['Transportasi', transportation_cost],
+            ['Meals', meal_cost],
+            ['Other Expenses', other_cost],
+            ['EHS (0.5%)', ehs_cost],
+            ['Contingency (4%)', contingency_cost]
+        ]
+
+        for idx, (komponen, biaya) in enumerate(other_costs_data, start=2):
+            other_sheet.write(f'A{idx}', komponen, normal_format)
+            other_sheet.write_number(f'B{idx}', biaya, currency_format)
+
+        other_sheet.write('A7', 'Subtotal', header_format)
+        other_sheet.write_formula('B7', '=SUM(B2:B6)', currency_format)
+        other_sheet.set_column('A:B', 25)
 
     output.seek(0)
     return output
 
+# Button to Download
 excel_data = generate_excel()
 
 st.download_button(
     label="📥 Download Hasil ke Excel",
     data=excel_data,
-    file_name="Kalkulasi_Full_PSA.xlsx",
+    file_name="Kalkulasi_Full_PSA_Detail.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
