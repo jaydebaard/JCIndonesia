@@ -37,30 +37,19 @@ with st.container():
 
     col_usd, col_kurs = st.columns(2)
     with col_usd:
-        technician_unit_cost_usd = st.number_input(
-            "Harga per Jam Teknisi (USD)", 
-            value=st.session_state.technician_unit_cost_usd, step=0.01, format="%.2f", key="input_usd")
+        technician_unit_cost_usd = st.number_input("Harga per Jam Teknisi (USD)", value=st.session_state.technician_unit_cost_usd, step=0.01, format="%.2f", key="input_usd")
         st.session_state.technician_unit_cost_usd = technician_unit_cost_usd
     with col_kurs:
-        usd_to_idr_rate = st.number_input(
-            "Kurs USD ke IDR", 
-            value=st.session_state.usd_to_idr_rate, step=100.0, format="%.0f", key="input_kurs")
+        usd_to_idr_rate = st.number_input("Kurs USD ke IDR", value=st.session_state.usd_to_idr_rate, step=100.0, format="%.0f", key="input_kurs")
         st.session_state.usd_to_idr_rate = usd_to_idr_rate
 
     default_technician_unit_cost_per_hour_idr = technician_unit_cost_usd * usd_to_idr_rate
-
-    technician_unit_cost_per_hour_idr = st.number_input(
-        "Biaya per Jam Teknisi (Rp)",
-        min_value=0.0,
-        value=default_technician_unit_cost_per_hour_idr,
-        step=1000.0,
-        format="%.0f",
-        key="input_cost_idr"
-    )
+    technician_unit_cost_per_hour_idr = st.number_input("Biaya per Jam Teknisi (Rp)", min_value=0.0, value=default_technician_unit_cost_per_hour_idr, step=1000.0, format="%.0f", key="input_cost_idr")
 
     st.caption(f"💡 Biaya default dihitung dari: ${technician_unit_cost_usd:.2f} × {usd_to_idr_rate:.0f} = Rp {default_technician_unit_cost_per_hour_idr:,.0f}")
 
     # Labour Planning
+    st.subheader("📋 Perencanaan Labour Cost")
     col1, col2 = st.columns(2)
     with col1:
         no_air_cooled = st.number_input("Jumlah Air Cooled Chiller", min_value=0, step=1)
@@ -76,7 +65,7 @@ with st.container():
     total_pm_days = st.number_input("Total Hari PM (auto/mau edit manual)", min_value=0.0, value=float(auto_total_pm_days), step=0.5)
 
     asd_visits = st.number_input("Jumlah Kunjungan ASD", min_value=0, step=1)
-    days_per_visit_asd = st.number_input("Jumlah Hari per Kunjungan ASD", min_value=0.0, value=float(asd_visits), step=0.5)
+    days_per_visit_asd = st.number_input("Jumlah Hari per Kunjungan ASD", min_value=0.0, step=0.5)
     hours_per_day_asd = st.number_input("Jam kerja per hari ASD", value=8.0, step=0.5)
     total_asd_days = asd_visits * days_per_visit_asd
 
@@ -84,33 +73,28 @@ with st.container():
     hours_per_day_ec = st.number_input("Jam kerja per Hari EC", value=6.0, step=0.5)
     total_ec_days = ec_visits
 
-    total_days = total_pm_days + total_asd_days + total_ec_days
-    total_hours = (total_pm_days * hours_per_day_pm) + (total_asd_days * hours_per_day_asd) + (total_ec_days * hours_per_day_ec)
+    # Travel Time
+    travel_days = st.number_input("Jumlah Hari Travel Time", min_value=0.0, step=0.5)
+    hours_per_day_travel = st.number_input("Jam kerja per hari Travel Time", value=8.0, step=0.5)
+
+    # Total Labour
+    total_days = total_pm_days + total_asd_days + total_ec_days + travel_days
+    total_hours = (total_pm_days * hours_per_day_pm) + (total_asd_days * hours_per_day_asd) + (total_ec_days * hours_per_day_ec) + (travel_days * hours_per_day_travel)
     total_cost_technician = total_hours * technician_unit_cost_per_hour_idr
 
     st.subheader("📊 Labour Cost Summary")
-    st.write(f"🔹 Total Hari Kerja Labour (PM + ASD + EC): {total_days:.1f} hari")
+    st.write(f"🔹 Total Hari Kerja Labour (PM + ASD + EC + Travel): {total_days:.1f} hari")
     st.write(f"🔹 Total Jam Kerja Labour: {total_hours:.1f} jam")
     st.write(f"🔹 Biaya per Jam Teknisi: Rp {technician_unit_cost_per_hour_idr:,.0f}")
     st.write(f"🔹 Total Labour Cost: Rp {total_cost_technician:,.0f}")
-    st.caption(f"💡 Perhitungan: Total Jam Kerja ({total_hours:.1f} jam) × Biaya per Jam (Rp {technician_unit_cost_per_hour_idr:,.0f}) = Rp {total_cost_technician:,.0f}")
+    st.caption(f"💡 Perhitungan: (Total Jam × Biaya per Jam) = Total Labour Cost")
 
     offered_price_idr = st.number_input("💵 Harga Ditawarkan (Rp)", min_value=0.0, step=1000.0, format="%.0f")
 
     margin_labour = (offered_price_idr - total_cost_technician) / offered_price_idr * 100 if offered_price_idr != 0 else 0
     st.write(f"🔹 Margin Labour Costing: {margin_labour:.2f}%")
 
-    if psa_type == "Renewal PSA" and parent_margin is not None:
-        if margin_labour >= parent_margin:
-            st.success(f"✅ Margin Labour ({margin_labour:.2f}%) memenuhi atau lebih besar dari Parent Margin ({parent_margin:.2f}%).")
-        else:
-            st.error(f"⚠️ Margin Labour ({margin_labour:.2f}%) lebih kecil dari Parent Margin ({parent_margin:.2f}%). Harus diperbaiki!")
-    elif psa_type == "New PSA":
-        if margin_labour > 20:
-            st.success(f"✅ Margin Labour ({margin_labour:.2f}%) bagus (lebih dari 20%).")
-        else:
-            st.error(f"⚠️ Margin Labour ({margin_labour:.2f}%) kurang dari 20%. Harus dinaikkan!")
-
+# (sambung subcontractor, other cost, final summary, export excel di lanjutannya)
 
 # SUBCONTRACTOR WORKS
 st.header("👷 SUBCONTRACTOR WORKS (Optional)")
@@ -119,26 +103,26 @@ with st.expander("➕ Tambahkan Subcontractor Works"):
     if add_subcon:
         work_types = ["Helper", "Cooling Tower", "Pump", "Controls", "AHU", "Other HVAC Work"]
         subcontractor_details = []
-        default_cost_per_day = 700000  # Harga fix Rp 700.000
+        default_cost_per_day = 700000  # Default Harga per Hari
 
         for work in work_types:
             st.subheader(f"🔹 {work}")
-            
+
             if work == "Helper":
-                default_days_helper = total_pm_days + total_asd_days + total_ec_days
+                default_days_helper = total_pm_days + total_asd_days + total_ec_days + travel_days
                 days = st.number_input(
-                    f"Jumlah Hari pekerjaan {work} (default: {default_days_helper:.1f} hari)", 
+                    f"Jumlah Hari {work} (default: {default_days_helper:.1f})", 
                     min_value=0.0, 
                     value=float(default_days_helper), 
                     step=0.5, 
                     key=f"days_{work}"
                 )
             else:
-                days = st.number_input(f"Jumlah Hari pekerjaan {work}", min_value=0.0, step=0.5, key=f"days_{work}")
+                days = st.number_input(f"Jumlah Hari {work}", min_value=0.0, step=0.5, key=f"days_{work}")
 
             jumlah = st.number_input(f"Jumlah Pekerja {work}", min_value=0, step=1, key=f"qty_{work}")
             cost_per_day = st.number_input(
-                f"Harga Satuan per Hari untuk {work} (Rp)", 
+                f"Harga Satuan per Hari {work} (Rp)", 
                 min_value=0.0, 
                 value=float(default_cost_per_day), 
                 step=1000.0, 
@@ -197,12 +181,9 @@ else:
     final_margin_percentage = 0
 
 st.subheader("📊 Ringkasan Akhir")
-st.write(f"💵 Harga Ditawarkan (Propose Price): Rp {offered_price_idr:,.0f}")
+st.write(f"💵 Harga Ditawarkan: Rp {offered_price_idr:,.0f}")
 st.write(f"💰 Total Cost (Labour + Subcon + Other): Rp {total_all_cost:,.0f}")
 st.write(f"📈 Margin Final: {final_margin_percentage:.2f}%")
-
-# FINAL PRESENTATION TABLE
-st.header("📋 Ringkasan Semua Komponen Cost & Margin")
 
 final_summary_table = pd.DataFrame({
     "Komponen": [
@@ -232,14 +213,14 @@ def generate_excel():
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         workbook = writer.book
-        
+
         # Define formats
         header_format = workbook.add_format({'bold': True, 'bg_color': '#D9E1F2', 'border': 1})
         currency_format = workbook.add_format({'num_format': '#,##0', 'border': 1})
         percent_format = workbook.add_format({'num_format': '0.00%', 'border': 1})
         normal_format = workbook.add_format({'border': 1})
 
-        ## 1. Summary Sheet
+        ## Summary
         summary_sheet = workbook.add_worksheet('Summary')
         summary_sheet.write('A1', 'Nama Proyek', header_format)
         summary_sheet.write('B1', project_name, normal_format)
@@ -254,24 +235,21 @@ def generate_excel():
         summary_sheet.write_number('B6', total_subcontractor_cost, currency_format)
         summary_sheet.write('A7', 'Total Other Cost', normal_format)
         summary_sheet.write_number('B7', total_other_cost, currency_format)
-
         summary_sheet.write('A8', 'Total Keseluruhan Cost', header_format)
         summary_sheet.write_formula('B8', '=SUM(B5:B7)', currency_format)
-
         summary_sheet.write('A9', 'Margin Final (%)', header_format)
         summary_sheet.write_formula('B9', '=(B4-B8)/B4', percent_format)
-
         summary_sheet.set_column('A:B', 25)
 
-        ## 2. Labour Detail Sheet
+        ## Labour Detail
         labour_sheet = workbook.add_worksheet('Labour Detail')
         labour_sheet.write_row('A1', ['Kategori', 'Jumlah Hari', 'Jam per Hari', 'Total Jam', 'Biaya per Jam', 'Total Cost'], header_format)
 
-        # Data Labour Detail
         labour_rows = [
             ['PM', total_pm_days, hours_per_day_pm],
             ['ASD', total_asd_days, hours_per_day_asd],
             ['EC', total_ec_days, hours_per_day_ec],
+            ['Travel Time', travel_days, hours_per_day_travel]
         ]
 
         for idx, (kategori, hari, jam) in enumerate(labour_rows, start=2):
@@ -284,44 +262,24 @@ def generate_excel():
 
         labour_sheet.set_column('A:F', 20)
 
-        ## 3. Subcontractor Detail Sheet
+        ## Subcontractor Detail
         if not df_subcontractor.empty:
             subcon_sheet = workbook.add_worksheet('Subcontractor Detail')
             subcon_sheet.write_row('A1', ['Pekerjaan', 'Jumlah Hari', 'Jumlah Pekerja', 'Harga per Hari', 'Total Cost'], header_format)
 
             for idx, row in enumerate(df_subcontractor.itertuples(index=False), start=2):
-                subcon_sheet.write(f'A{idx}', row[0], normal_format)  # Pekerjaan
-                subcon_sheet.write_number(f'B{idx}', row[1], normal_format)  # Jumlah Hari
-                subcon_sheet.write_number(f'C{idx}', row[2], normal_format)  # Jumlah Pekerja
-                subcon_sheet.write_number(f'D{idx}', row[3], currency_format)  # Harga per Hari
-                subcon_sheet.write_formula(f'E{idx}', f'=B{idx}*C{idx}*D{idx}', currency_format)  # Total Cost
+                subcon_sheet.write(f'A{idx}', row[0], normal_format)
+                subcon_sheet.write_number(f'B{idx}', row[1], normal_format)
+                subcon_sheet.write_number(f'C{idx}', row[2], normal_format)
+                subcon_sheet.write_number(f'D{idx}', row[3], currency_format)
+                subcon_sheet.write_formula(f'E{idx}', f'=B{idx}*C{idx}*D{idx}', currency_format)
 
             subcon_sheet.set_column('A:E', 22)
-
-        ## 4. Other Costs Sheet
-        other_sheet = workbook.add_worksheet('Other Costs')
-        other_sheet.write_row('A1', ['Komponen', 'Biaya (Rp)'], header_format)
-        
-        other_costs_data = [
-            ['Transportasi', transportation_cost],
-            ['Meals', meal_cost],
-            ['Other Expenses', other_cost],
-            ['EHS (0.5%)', ehs_cost],
-            ['Contingency (4%)', contingency_cost]
-        ]
-
-        for idx, (komponen, biaya) in enumerate(other_costs_data, start=2):
-            other_sheet.write(f'A{idx}', komponen, normal_format)
-            other_sheet.write_number(f'B{idx}', biaya, currency_format)
-
-        other_sheet.write('A7', 'Subtotal', header_format)
-        other_sheet.write_formula('B7', '=SUM(B2:B6)', currency_format)
-        other_sheet.set_column('A:B', 25)
 
     output.seek(0)
     return output
 
-# Button to Download
+# Button Export Excel
 excel_data = generate_excel()
 
 st.download_button(
