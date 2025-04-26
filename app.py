@@ -97,10 +97,6 @@ with st.container():
 
     offered_price_idr = st.number_input("💵 Harga Ditawarkan (Rp)", min_value=0.0, step=1000.0, format="%.0f")
 
-#  -- lanjutkan subcontractor, other costs, final summary, export excel  (karena limit token, gue kirim lanjutannya di next message langsung ya) --
-
-
-
 # SUBCONTRACTOR WORKS
 st.header("👷 SUBCONTRACTOR WORKS (Optional)")
 with st.expander("➕ Tambahkan Subcontractor Works"):
@@ -108,12 +104,11 @@ with st.expander("➕ Tambahkan Subcontractor Works"):
     if add_subcon:
         work_types = ["Helper", "Cooling Tower", "Pump", "Controls", "AHU", "Other HVAC Work"]
         subcontractor_details = []
-        default_cost_per_day = 700000  # Default harga satuan semua Rp 700.000
+        default_cost_per_day = 700000  # Harga fix Rp 700.000
 
         for work in work_types:
             st.subheader(f"🔹 {work}")
-
-            # Jumlah Hari
+            
             if work == "Helper":
                 default_days_helper = total_pm_days + total_asd_days + total_ec_days
                 days = st.number_input(
@@ -124,22 +119,9 @@ with st.expander("➕ Tambahkan Subcontractor Works"):
                     key=f"days_{work}"
                 )
             else:
-                days = st.number_input(
-                    f"Jumlah Hari pekerjaan {work}", 
-                    min_value=0.0, 
-                    step=0.5, 
-                    key=f"days_{work}"
-                )
+                days = st.number_input(f"Jumlah Hari pekerjaan {work}", min_value=0.0, step=0.5, key=f"days_{work}")
 
-            # Jumlah Pekerja
-            jumlah = st.number_input(
-                f"Jumlah Pekerja {work}", 
-                min_value=0, 
-                step=1, 
-                key=f"qty_{work}"
-            )
-
-            # Harga satuan pekerjaan per hari per pekerja (editable, default 700,000)
+            jumlah = st.number_input(f"Jumlah Pekerja {work}", min_value=0, step=1, key=f"qty_{work}")
             cost_per_day = st.number_input(
                 f"Harga Satuan per Hari untuk {work} (Rp)", 
                 min_value=0.0, 
@@ -166,7 +148,6 @@ with st.expander("➕ Tambahkan Subcontractor Works"):
         total_subcontractor_cost = 0.0
         df_subcontractor = pd.DataFrame()
 
-
 # OTHER COSTS
 st.header("💵 OTHER COSTS (Optional)")
 with st.expander("➕ Tambahkan Other Costs"):
@@ -190,7 +171,7 @@ with st.expander("➕ Tambahkan Other Costs"):
         contingency_cost = 0.0
         total_other_cost = 0.0
 
-## FINAL SUMMARY
+# FINAL SUMMARY
 st.header("📈 FINAL SUMMARY")
 
 total_all_cost = total_cost_technician + total_subcontractor_cost + total_other_cost
@@ -204,17 +185,6 @@ st.subheader("📊 Ringkasan Akhir")
 st.write(f"💵 Harga Ditawarkan (Propose Price): Rp {offered_price_idr:,.0f}")
 st.write(f"💰 Total Cost (Labour + Subcon + Other): Rp {total_all_cost:,.0f}")
 st.write(f"📈 Margin Final: {final_margin_percentage:.2f}%")
-
-if psa_type == "Renewal PSA" and parent_margin is not None:
-    if final_margin_percentage >= parent_margin:
-        st.success(f"✅ Margin Total ({final_margin_percentage:.2f}%) memenuhi atau lebih besar dari Parent Margin ({parent_margin:.2f}%).")
-    else:
-        st.error(f"⚠️ Margin Total ({final_margin_percentage:.2f}%) lebih kecil dari Parent Margin ({parent_margin:.2f}%). Harus diperbaiki!")
-elif psa_type == "New PSA":
-    if final_margin_percentage > 20:
-        st.success(f"✅ Margin Total ({final_margin_percentage:.2f}%) bagus (lebih dari 20%).")
-    else:
-        st.error(f"⚠️ Margin Total ({final_margin_percentage:.2f}%) kurang dari 20%. Harus dinaikkan!")
 
 # FINAL PRESENTATION TABLE
 st.header("📋 Ringkasan Semua Komponen Cost & Margin")
@@ -240,37 +210,43 @@ final_summary_table = pd.DataFrame({
 
 st.dataframe(final_summary_table)
 
-
 # EXPORT TO EXCEL
 st.header("📤 Export Data ke Excel")
 
 def generate_excel():
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        summary_data = {
-            "Item": [
-                "Propose Price (Rp)", 
-                "Total Labour Cost (Rp)", 
-                "Total Subcontractor Cost (Rp)", 
-                "Total Other Cost (Rp)", 
-                "Total All Cost (Rp)", 
-                "Final Margin (%)"
-            ],
-            "Value": [
-                offered_price_idr,
-                total_cost_technician,
-                total_subcontractor_cost,
-                total_other_cost,
-                total_all_cost,
-                final_margin_percentage
-            ]
-        }
-        df_summary = pd.DataFrame(summary_data)
-        df_summary.to_excel(writer, index=False, sheet_name='Summary')
+        workbook = writer.book
 
+        # Summary Sheet
+        summary_data = [
+            ["Nama Proyek", project_name],
+            [],
+            ["Komponen", "Nilai (Rp)"],
+            ["Harga Ditawarkan (Propose Price)", offered_price_idr],
+            ["Total Labour Cost", total_cost_technician],
+            ["Total Subcontractor Cost", total_subcontractor_cost],
+            ["Total Other Cost", total_other_cost],
+            ["Total Keseluruhan Cost", "=SUM(B5:B7)"],
+            ["Margin Final (%)", "=(B4-B8)/B4"]
+        ]
+        df_summary = pd.DataFrame(summary_data)
+        df_summary.to_excel(writer, index=False, header=False, sheet_name='Summary')
+
+        # Labour Sheet (Detail)
+        labour_detail = [
+            ["Kategori", "Jumlah Hari", "Jam per Hari", "Total Jam", "Biaya per Jam", "Total Cost"],
+            ["PM", total_pm_days, hours_per_day_pm, total_pm_days * hours_per_day_pm, technician_unit_cost_per_hour_idr, total_pm_days * hours_per_day_pm * technician_unit_cost_per_hour_idr],
+            ["ASD", total_asd_days, hours_per_day_asd, total_asd_days * hours_per_day_asd, technician_unit_cost_per_hour_idr, total_asd_days * hours_per_day_asd * technician_unit_cost_per_hour_idr],
+            ["EC", total_ec_days, hours_per_day_ec, total_ec_days * hours_per_day_ec, technician_unit_cost_per_hour_idr, total_ec_days * hours_per_day_ec * technician_unit_cost_per_hour_idr]
+        ]
+        df_labour = pd.DataFrame(labour_detail)
+        df_labour.to_excel(writer, index=False, header=False, sheet_name='Labour Detail')
+
+        # Subcontractor Sheet
         if not df_subcontractor.empty:
             df_subcontractor.to_excel(writer, index=False, sheet_name='Subcontractor Detail')
-        
+
     output.seek(0)
     return output
 
