@@ -19,7 +19,7 @@ psa_type = st.radio(
 if psa_type == "Renewal PSA":
     parent_margin = st.number_input("Masukkan Parent Margin (%)", min_value=0.0, max_value=100.0, step=0.1, format="%.1f")
 else:
-    parent_margin = None  # Tidak relevan untuk New PSA
+    parent_margin = None
 
 # ===============================================
 # LABOUR COSTING
@@ -58,16 +58,15 @@ total_ec_days = ec_visits
 st.subheader("6. Harga Yang Ditawarkan")
 offered_price_idr = st.number_input("Harga Ditawarkan (Rp)", min_value=0.0, step=1000.0, format="%.0f")
 
-# Hitungan Labour Cost
+# Hitung Labour Cost
 total_days = total_pm_days + total_asd_days + total_ec_days
 total_hours = (total_pm_days * hours_per_day_pm) + (total_asd_days * hours_per_day_asd) + (total_ec_days * hours_per_day_ec)
 total_cost_technician = total_hours * technician_unit_cost_per_hour_idr
 
+# ===============================================
 # Margin Labour
 margin_labour = (offered_price_idr - total_cost_technician) / offered_price_idr * 100 if offered_price_idr != 0 else 0
 
-# ===============================================
-# LABOUR Margin Analysis
 st.subheader("📊 Labour Costing Margin Analysis")
 st.write(f"🔹 Margin berdasarkan Labour Costing: {margin_labour:.2f}%")
 
@@ -83,19 +82,16 @@ st.header("👷 SUBCONTRACTOR WORKS (Optional)")
 with st.expander("➕ Tambahkan Subcontractor Works"):
     add_subcon = st.checkbox("Centang untuk input biaya Subcontractor", value=False)
     if add_subcon:
-        st.subheader("Helper Work")
         helper_days = st.number_input("Jumlah Hari Helper", min_value=0.0, step=0.5, format="%.1f")
         helper_hours_per_day = st.number_input("Jam kerja per Hari Helper", min_value=0.0, value=8.0, step=0.5, format="%.1f")
         helper_cost_per_hour = st.number_input("Biaya per Jam Helper (Rp)", min_value=0.0, value=62500.0, step=1000.0, format="%.0f")
         helper_total_cost = helper_days * helper_hours_per_day * helper_cost_per_hour
 
-        st.subheader("Condenser Cleaning Work")
         cleaning_days = st.number_input("Jumlah Hari Cleaning", min_value=0.0, step=0.5, format="%.1f")
         cleaning_hours_per_day = st.number_input("Jam kerja per Hari Cleaning", min_value=0.0, value=8.0, step=0.5, format="%.1f")
         cleaning_cost_per_hour = st.number_input("Biaya per Jam Cleaning (Rp)", min_value=0.0, value=62500.0, step=1000.0, format="%.0f")
         cleaning_total_cost = cleaning_days * cleaning_hours_per_day * cleaning_cost_per_hour
 
-        st.subheader("Other Subcontractor Work")
         other_days = st.number_input("Jumlah Hari Other Subcon", min_value=0.0, step=0.5, format="%.1f")
         other_hours_per_day = st.number_input("Jam kerja per Hari Other Subcon", min_value=0.0, value=8.0, step=0.5, format="%.1f")
         other_cost_per_hour = st.number_input("Biaya per Jam Other Subcon (Rp)", min_value=0.0, step=1000.0, format="%.0f")
@@ -145,20 +141,69 @@ margin_final = (offered_price_idr - total_final_cost) / offered_price_idr * 100 
 st.header("🧾 FINAL SUMMARY")
 
 st.metric(label="Total Final Cost (Rp)", value=f"Rp {total_final_cost:,.0f}")
-if margin_final < 40:
-    st.error(f"⚠️ Margin Final: {margin_final:.2f}% (Kurang dari 40%)")
-else:
-    st.success(f"✅ Margin Final: {margin_final:.2f}% (Bagus)")
+
+# Logic Margin Final
+if psa_type == "Renewal PSA":
+    if margin_final < 40:
+        st.error(f"⚠️ Margin Final: {margin_final:.2f}% (Di bawah 40%)")
+    else:
+        st.success(f"✅ Margin Final: {margin_final:.2f}% (Bagus)")
+elif psa_type == "New PSA":
+    if margin_final > 20:
+        st.success(f"✅ Margin Final: {margin_final:.2f}% (Bagus, > 20%)")
+    else:
+        st.error(f"⚠️ Margin Final: {margin_final:.2f}% (Kurang dari 20%) - Harus Ditingkatkan")
 
 # ===============================================
 # PRICE vs COST ANALYSIS
 st.header("🧩 Price vs Cost Analysis")
-if margin_final >= 40 and offered_price_idr >= total_final_cost:
-    st.success("✅ Harga dan Margin sudah BAGUS. Siap lanjut ke offering atau negosiasi.")
-elif margin_final < 40 and offered_price_idr >= total_final_cost:
-    st.warning("⚠️ Harga cukup, tapi Margin kurang dari 40%. Perlu cek ulang Cost atau Price.")
-elif offered_price_idr < total_final_cost:
-    st.error("❌ Harga ditawarkan LEBIH KECIL dari Total Cost. HARUS dinaikkan sebelum submit.")
+if offered_price_idr < total_final_cost:
+    price_vs_cost_result = "❌ Harga ditawarkan lebih kecil dari total cost."
+elif psa_type == "New PSA" and margin_final <= 20:
+    price_vs_cost_result = "⚠️ Margin New PSA kurang dari 20%."
+elif psa_type == "Renewal PSA" and margin_final <= 40:
+    price_vs_cost_result = "⚠️ Margin Renewal PSA kurang dari 40%."
 else:
-    st.warning("⚠️ Perlu review antara Harga dan Cost.")
+    price_vs_cost_result = "✅ Harga dan Margin sudah bagus."
 
+st.write(price_vs_cost_result)
+
+# ===============================================
+# EXPORT TO EXCEL
+st.header("📥 Download Hasil Analisis ke Excel")
+
+summary_data = {
+    "Keterangan": [
+        "PSA Type",
+        "Parent Margin (%)",
+        "Margin Labour (%)",
+        "Total Final Cost (Rp)",
+        "Offered Price (Rp)",
+        "Margin Final (%)",
+        "Price vs Cost Result",
+    ],
+    "Hasil": [
+        psa_type,
+        parent_margin if parent_margin is not None else "-",
+        f"{margin_labour:.2f}",
+        f"Rp {total_final_cost:,.0f}",
+        f"Rp {offered_price_idr:,.0f}",
+        f"{margin_final:.2f}",
+        price_vs_cost_result,
+    ]
+}
+
+df_summary = pd.DataFrame(summary_data)
+
+def to_excel(df):
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='PSA Summary')
+    return output.getvalue()
+
+st.download_button(
+    label="📥 Download Hasil Analisis ke Excel",
+    data=to_excel(df_summary),
+    file_name="psa_costing_summary.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
