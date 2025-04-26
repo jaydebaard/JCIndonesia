@@ -84,7 +84,11 @@ with st.container():
     total_cost_technician = total_hours * technician_unit_cost_per_hour_idr
 
     st.subheader("📊 Labour Cost Summary")
+    st.write(f"🔹 Total Hari Kerja Labour (PM + ASD + EC): {total_days:.1f} hari")
+    st.write(f"🔹 Total Jam Kerja Labour: {total_hours:.1f} jam")
+    st.write(f"🔹 Biaya per Jam Teknisi: Rp {technician_unit_cost_per_hour_idr:,.0f}")
     st.write(f"🔹 Total Labour Cost: Rp {total_cost_technician:,.0f}")
+    st.caption(f"💡 Perhitungan: Total Jam Kerja ({total_hours:.1f} jam) × Biaya per Jam (Rp {technician_unit_cost_per_hour_idr:,.0f}) = Rp {total_cost_technician:,.0f}")
 
     offered_price_idr = st.number_input("💵 Harga Ditawarkan (Rp)", min_value=0.0, step=1000.0, format="%.0f")
 
@@ -109,19 +113,19 @@ with st.expander("➕ Tambahkan Subcontractor Works"):
     if add_subcon:
         work_types = ["Helper", "Cooling Tower", "Pump", "Controls", "AHU", "Other HVAC Work"]
         subcontractor_details = []
-        default_cost_per_day = 700000  # 👈 Harga fix Rp 700.000 per hari per pekerja
+        default_cost_per_day = 700000  # Harga fix Rp 700.000 per hari per pekerja
 
         for work in work_types:
             st.subheader(f"🔹 {work}")
-            
+
             if work == "Helper":
-                days = total_pm_days  # 👈 Jumlah hari Helper otomatis ambil dari Labour PM Days
-                st.info(f"Jumlah Hari Helper mengikuti Total Hari PM: {days:.1f} hari")
+                days = total_pm_days + total_asd_days + total_ec_days  # 👈 Total semua Labour Days
+                st.info(f"Jumlah Hari Helper mengikuti Total Hari Labour (PM + ASD + EC): {days:.1f} hari")
             else:
                 days = st.number_input(f"Jumlah Hari pekerjaan {work}", min_value=0.0, step=0.5, key=f"days_{work}")
 
             jumlah = st.number_input(f"Jumlah Pekerja {work}", min_value=0, step=1, key=f"qty_{work}")
-            cost_per_day = default_cost_per_day  # 👈 Harga satuan fixed 700.000
+            cost_per_day = default_cost_per_day  # Harga tetap
 
             total_cost = days * jumlah * cost_per_day
 
