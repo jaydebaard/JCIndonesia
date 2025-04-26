@@ -155,4 +155,75 @@ with st.expander("➕ Tambahkan Other Costs"):
         contingency_cost = 0.0
         total_other_cost = 0.0
 
-# (Final Calculation dan Export tetap sama)
+## FINAL SUMMARY
+st.header("📈 FINAL SUMMARY")
+
+# Total Cost Calculation
+total_all_cost = total_cost_technician + total_subcontractor_cost + total_other_cost
+
+# Margin Calculation
+if offered_price_idr > 0:
+    final_margin_percentage = ((offered_price_idr - total_all_cost) / offered_price_idr) * 100
+else:
+    final_margin_percentage = 0
+
+st.subheader("📊 Ringkasan Akhir")
+st.write(f"💵 Harga Ditawarkan (Propose Price): Rp {offered_price_idr:,.0f}")
+st.write(f"💰 Total Cost (Labour + Subcon + Other): Rp {total_all_cost:,.0f}")
+st.write(f"📈 Margin Final: {final_margin_percentage:.2f}%")
+
+# Final Check
+if psa_type == "Renewal PSA" and parent_margin is not None:
+    if final_margin_percentage >= parent_margin:
+        st.success(f"✅ Margin Total ({final_margin_percentage:.2f}%) memenuhi atau lebih besar dari Parent Margin ({parent_margin:.2f}%).")
+    else:
+        st.error(f"⚠️ Margin Total ({final_margin_percentage:.2f}%) lebih kecil dari Parent Margin ({parent_margin:.2f}%). Harus diperbaiki!")
+elif psa_type == "New PSA":
+    if final_margin_percentage > 20:
+        st.success(f"✅ Margin Total ({final_margin_percentage:.2f}%) bagus (lebih dari 20%).")
+    else:
+        st.error(f"⚠️ Margin Total ({final_margin_percentage:.2f}%) kurang dari 20%. Harus dinaikkan!")
+# EXPORT TO EXCEL
+st.header("📤 Export Data ke Excel")
+
+def generate_excel():
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        # Sheet 1: Summary
+        summary_data = {
+            "Item": [
+                "Propose Price (Rp)", 
+                "Total Labour Cost (Rp)", 
+                "Total Subcontractor Cost (Rp)", 
+                "Total Other Cost (Rp)", 
+                "Total All Cost (Rp)", 
+                "Final Margin (%)"
+            ],
+            "Value": [
+                offered_price_idr,
+                total_cost_technician,
+                total_subcontractor_cost,
+                total_other_cost,
+                total_all_cost,
+                final_margin_percentage
+            ]
+        }
+        df_summary = pd.DataFrame(summary_data)
+        df_summary.to_excel(writer, index=False, sheet_name='Summary')
+
+        # Sheet 2: Subcontractor Detail (optional)
+        if not df_subcontractor.empty:
+            df_subcontractor.to_excel(writer, index=False, sheet_name='Subcontractor Detail')
+        
+        writer.save()
+        processed_data = output.getvalue()
+    return processed_data
+
+excel_data = generate_excel()
+
+st.download_button(
+    label="📥 Download Hasil ke Excel",
+    data=excel_data,
+    file_name="Kalkulasi_Full_PSA.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
