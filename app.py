@@ -70,13 +70,20 @@ with st.container():
     ## ASD
     st.markdown("---")
     st.markdown("### 🔹 ASD (Annual Shutdown) Planning")
-    hours_per_day_asd = st.number_input("Jam kerja per hari ASD", value=8.0, step=0.5)
-    manpower_asd = st.number_input("Jumlah Teknisi ASD", min_value=1, value=2, step=1)
-    asd_visits = st.number_input("Jumlah Kunjungan ASD", min_value=0, step=1)
 
-    # Perhitungan hari ASD
-    base_asd_days = (no_air_cooled * 4) + (no_water_cooled * 2)
-    total_asd_days = base_asd_days * asd_visits * manpower_asd
+    need_asd = st.checkbox("Apakah perlu pekerjaan ASD?", value=True)
+
+    if need_asd:
+        hours_per_day_asd = st.number_input("Jam kerja per hari ASD", value=8.0, step=0.5)
+        manpower_asd = st.number_input("Jumlah Teknisi ASD", min_value=1, value=2, step=1)
+        asd_visits = st.number_input("Jumlah Kunjungan ASD", min_value=0, step=1)
+
+        # Perhitungan hari ASD
+        base_asd_days = (no_air_cooled * 4) + (no_water_cooled * 2)
+        total_asd_days = base_asd_days * asd_visits * manpower_asd
+    else:
+        total_asd_days = 0
+        hours_per_day_asd = 0
 
     ## EC
     st.markdown("---")
@@ -107,6 +114,7 @@ with st.container():
 
     margin_labour = (offered_price_idr - total_cost_technician) / offered_price_idr * 100 if offered_price_idr != 0 else 0
     st.write(f"🔹 Margin Labour Costing: {margin_labour:.2f}%")
+
 
 
 # SUBCONTRACTOR WORKS
