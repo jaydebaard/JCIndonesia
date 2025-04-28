@@ -46,50 +46,58 @@ with st.container():
 
     st.caption(f"💡 Biaya default dihitung dari: ${technician_unit_cost_usd:.2f} × {usd_to_idr_rate:.0f} = Rp {default_technician_unit_cost_per_hour_idr:,.0f}")
 
-    # Labour Planning
+    # LABOUR PLANNING
     st.subheader("📋 Perencanaan Labour Cost")
 
+    ## PM
+    st.markdown("### 🔹 PM (Preventive Maintenance) Planning")
     col1, col2 = st.columns(2)
     with col1:
-        no_air_cooled = st.number_input("Jumlah Air Cooled Chiller (PM)", min_value=0, step=1)
+        no_air_cooled_pm = st.number_input("Jumlah Air Cooled Chiller (PM)", min_value=0, step=1)
     with col2:
-        no_water_cooled = st.number_input("Jumlah Water Cooled Chiller (PM)", min_value=0, step=1)
+        no_water_cooled_pm = st.number_input("Jumlah Water Cooled Chiller (PM)", min_value=0, step=1)
 
     hours_per_day_pm = st.number_input("Jam kerja per hari PM", value=8.0, step=0.5)
-    manpower_pm = st.number_input("Jumlah Teknisi PM", min_value=1, step=1)
+    manpower_pm = st.number_input("Jumlah Teknisi PM", min_value=1, value=1, step=1)
     pm_visits = st.number_input("Jumlah Kunjungan PM", min_value=0, step=1)
 
-    base_pm_days = (no_air_cooled * 1) + (no_water_cooled / 2)
-    auto_total_pm_days = base_pm_days * pm_visits * manpower_pm
-    total_pm_days = st.number_input("Total Hari PM (auto/mau edit manual)", min_value=0.0, value=float(auto_total_pm_days), step=0.5)
+    base_pm_days = (no_air_cooled_pm * 1) + (no_water_cooled_pm / 2)
+    total_pm_days = base_pm_days * pm_visits * manpower_pm
 
+    ## ASD
     st.markdown("---")
-    st.subheader("📋 Perencanaan ASD (Annual Shutdown)")
-
+    st.markdown("### 🔹 ASD (Annual Shutdown) Planning")
     asd_visits = st.number_input("Jumlah Kunjungan ASD", min_value=0, step=1)
     manpower_asd = st.number_input("Jumlah Teknisi ASD", min_value=1, value=2, step=1)
-    no_air_cool_asd = st.number_input("Jumlah Air Cooled untuk ASD", min_value=0, step=1)
-    no_water_cool_asd = st.number_input("Jumlah Water Cooled untuk ASD", min_value=0, step=1)
+    
+    no_air_cooled_asd = st.number_input("Jumlah Air Cooled Chiller (ASD)", min_value=0, step=1)
+    no_water_cooled_asd = st.number_input("Jumlah Water Cooled Chiller (ASD)", min_value=0, step=1)
 
-    # Perhitungan total hari untuk ASD
-    base_asd_days_per_visit = (no_air_cool_asd * 4) + (no_water_cool_asd * 2)
-    total_asd_days = base_asd_days_per_visit * asd_visits * manpower_asd
+    # Hitungan otomatis durasi kerja ASD
+    base_days_per_visit_asd = (no_air_cooled_asd * 4) + (no_water_cooled_asd * 2)
+    total_asd_days = base_days_per_visit_asd * asd_visits * manpower_asd
 
     hours_per_day_asd = st.number_input("Jam kerja per hari ASD", value=8.0, step=0.5)
 
+    ## EC
     st.markdown("---")
+    st.markdown("### 🔹 EC (Emergency Call) Planning")
     ec_visits = st.number_input("Jumlah Kunjungan EC", min_value=0, step=1)
     hours_per_day_ec = st.number_input("Jam kerja per Hari EC", value=6.0, step=0.5)
-    total_ec_days = ec_visits
+    total_ec_days = ec_visits  # diasumsikan EC = 1 hari per visit
 
+    ## Travel
     st.markdown("---")
+    st.markdown("### 🔹 Travel Time")
     travel_days = st.number_input("Jumlah Hari Travel Time", min_value=0.0, step=0.5)
     hours_per_day_travel = st.number_input("Jam kerja per hari Travel Time", value=8.0, step=0.5)
 
+    # Summary Labour Total
     total_days = total_pm_days + total_asd_days + total_ec_days + travel_days
     total_hours = (total_pm_days * hours_per_day_pm) + (total_asd_days * hours_per_day_asd) + (total_ec_days * hours_per_day_ec) + (travel_days * hours_per_day_travel)
     total_cost_technician = total_hours * technician_unit_cost_per_hour_idr
 
+    # SUMMARY OUTPUT
     st.subheader("📊 Labour Cost Summary")
     st.write(f"🔹 Total Hari Kerja Labour (PM + ASD + EC + Travel): {total_days:.1f} hari")
     st.write(f"🔹 Total Jam Kerja Labour: {total_hours:.1f} jam")
@@ -100,20 +108,6 @@ with st.container():
 
     margin_labour = (offered_price_idr - total_cost_technician) / offered_price_idr * 100 if offered_price_idr != 0 else 0
     st.write(f"🔹 Margin Labour Costing: {margin_labour:.2f}%")
-
-if psa_type == "New PSA":
-    if margin_labour >= 20:
-        st.success(f"✅ Margin Labour ({margin_labour:.2f}%) memenuhi syarat New PSA (≥ 20%). OK!")
-    else:
-        st.error(f"⚠️ Margin Labour ({margin_labour:.2f}%) kurang dari syarat 20%. Harus dinaikkan.")
-elif psa_type == "Renewal PSA":
-    if parent_margin is not None:
-        if margin_labour > parent_margin:
-            st.success(f"✅ Margin Labour ({margin_labour:.2f}%) lebih besar dari Parent Margin ({parent_margin:.2f}%). OK!")
-        else:
-            st.error(f"⚠️ Margin Labour ({margin_labour:.2f}%) lebih kecil dari Parent Margin ({parent_margin:.2f}%). Harus diperbaiki.")
-
-# Lanjut subcontractor, other cost, final summary, export excel (sama seperti sebelumnya)
 
 # SUBCONTRACTOR WORKS
 st.header("👷 SUBCONTRACTOR WORKS (Optional)")
