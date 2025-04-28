@@ -63,9 +63,18 @@ with st.container():
     total_pm_days = st.number_input("Total Hari PM (auto/mau edit manual)", min_value=0.0, value=float(auto_total_pm_days), step=0.5)
 
     asd_visits = st.number_input("Jumlah Kunjungan ASD", min_value=0, step=1)
-    days_per_visit_asd = st.number_input("Jumlah Hari per Kunjungan ASD", min_value=0.0, step=0.5)
-    hours_per_day_asd = st.number_input("Jam kerja per hari ASD", value=8.0, step=0.5)
-    total_asd_days = asd_visits * days_per_visit_asd
+    # ASD Planning - Auto calculate days per visit based on chiller quantities
+    days_per_visit_asd_auto = (no_air_cooled * 4) + (no_water_cooled * 2)
+    days_per_visit_asd = st.number_input(
+    "Jumlah Hari per Kunjungan ASD (otomatis dihitung dari Jumlah Chiller)",
+    min_value=0.0,
+    value=float(days_per_visit_asd_auto),
+    step=0.5,
+    key="days_per_visit_asd"
+)
+
+
+    
 
     ec_visits = st.number_input("Jumlah Kunjungan EC", min_value=0, step=1)
     hours_per_day_ec = st.number_input("Jam kerja per Hari EC", value=6.0, step=0.5)
