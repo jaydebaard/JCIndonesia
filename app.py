@@ -62,12 +62,20 @@ with st.container():
     auto_total_pm_days = base_pm_days * pm_visits * manpower_pm
     total_pm_days = st.number_input("Total Hari PM (auto/mau edit manual)", min_value=0.0, value=float(auto_total_pm_days), step=0.5)
 
-    asd_visits = st.number_input("Jumlah Kunjungan ASD", min_value=0, step=1)
-    default_days_per_visit_asd = (no_air_cooled * 2) + (no_water_cooled * 4)
-    days_per_visit_asd = st.number_input(
+    # Hitung otomatis default ASD Days per Visit
+default_days_per_visit_asd = (no_air_cooled * 2) + (no_water_cooled * 4)
+
+if "days_per_visit_asd" not in st.session_state:
+    st.session_state.days_per_visit_asd = default_days_per_visit_asd
+
+# Update otomatis kalau jumlah chiller berubah
+if default_days_per_visit_asd != st.session_state.days_per_visit_asd:
+    st.session_state.days_per_visit_asd = default_days_per_visit_asd
+
+days_per_visit_asd = st.number_input(
     "Jumlah Hari per Kunjungan ASD",
     min_value=0.0,
-    value=float(default_days_per_visit_asd),
+    value=st.session_state.days_per_visit_asd,
     step=0.5,
     key="input_days_per_visit_asd"
 )
