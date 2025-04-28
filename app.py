@@ -90,7 +90,7 @@ with st.container():
     hours_per_day_travel = st.number_input("Jam kerja per hari Travel Time", value=8.0, step=0.5)
 
     total_days = total_pm_days + total_asd_days + total_ec_days + travel_days
-    total_hours = (total_pm_days * hours_per_day_pm) + (total_asd_days * hours_per_day_asd) + (total_ec_days * hours_per_day_ec) + (travel_days * hours_per_day_travel)
+    total_hours = (total_pm_days * hours_per_day_pm) + (total_asd_days * days_per_visit_asd) + (total_ec_days * hours_per_day_ec) + (travel_days * hours_per_day_travel)
     total_cost_technician = total_hours * technician_unit_cost_per_hour_idr
 
     st.subheader("📊 Labour Cost Summary")
@@ -117,5 +117,5 @@ elif psa_type == "Renewal PSA":
         else:
             st.error(f"⚠️ Margin Labour ({margin_labour:.2f}%) lebih kecil dari Parent Margin ({parent_margin:.2f}%). Harus diperbaiki.")
 
-# (lanjut bagian Subcontractor, Other Cost, Final Summary, Export Excel) 
+# Next steps: subcontractor, other cost, final summary, export excel...
 
