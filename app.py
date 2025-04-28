@@ -63,10 +63,14 @@ with st.container():
     total_pm_days = st.number_input("Total Hari PM (auto/mau edit manual)", min_value=0.0, value=float(auto_total_pm_days), step=0.5)
 
     asd_visits = st.number_input("Jumlah Kunjungan ASD", min_value=0, step=1)
-    days_per_visit_asd = st.number_input("Jumlah Hari per Kunjungan ASD", min_value=0.0, step=0.5)
-    hours_per_day_asd = st.number_input("Jam kerja per hari ASD", value=8.0, step=0.5)
-    total_asd_days = asd_visits * days_per_visit_asd
-
+    default_days_per_visit_asd = (no_air_cooled * 2) + (no_water_cooled * 4)
+    days_per_visit_asd = st.number_input(
+    "Jumlah Hari per Kunjungan ASD",
+    min_value=0.0,
+    value=float(default_days_per_visit_asd),
+    step=0.5,
+    key="input_days_per_visit_asd"
+)
     ec_visits = st.number_input("Jumlah Kunjungan EC", min_value=0, step=1)
     hours_per_day_ec = st.number_input("Jam kerja per Hari EC", value=6.0, step=0.5)
     total_ec_days = ec_visits
